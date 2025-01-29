@@ -1,7 +1,7 @@
 FROM ubuntu:jammy
 
 LABEL org.opencontainers.image.authors="GUOHAI.ORG"
-
+LABEL org.opencontainers.image.source https://github.com/guohai163/jacoco-report
 ENV VERSION_STRING=5:27.3.0-1~ubuntu.22.04~jammy
 
 # 基础功能安装

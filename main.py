@@ -12,3 +12,4 @@ import uuid
 
 if __name__ == '__main__':
     print('jacoco-report start ...')
+    print(os.getenv('MINIO_URL'))
