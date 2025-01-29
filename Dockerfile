@@ -17,7 +17,7 @@ RUN set -eux && \
     curl -OL https://cdn.azul.com/zulu/bin/zulu11.78.15-ca-jdk11.0.26-linux_x64.tar.gz && \
     tar -zxvf zulu11.78.15-ca-jdk11.0.26-linux_x64.tar.gz && \
     rm -rf zulu11.78.15-ca-jdk11.0.26-linux_x64.tar.gz && \
-    ln -sf /opt/zulu11.78.15-ca-jdk11.0.26-linux_x64 /opt/jdk11
+    ln -sf /opt/zulu11.78.15-ca-jdk11.0.26-linux_x64 /opt/jdk11 && \
     curl -OL https://cdn.azul.com/zulu/bin/zulu17.54.21-ca-jdk17.0.13-linux_x64.tar.gz && \
     tar -zxvf zulu17.54.21-ca-jdk17.0.13-linux_x64.tar.gz && \
     rm -rf zulu17.54.21-ca-jdk17.0.13-linux_x64.tar.gz && \
@@ -25,7 +25,7 @@ RUN set -eux && \
     curl -OL https://cdn.azul.com/zulu/bin/zulu21.38.21-ca-jdk21.0.5-linux_x64.tar.gz && \
     tar -zxvf zulu21.38.21-ca-jdk21.0.5-linux_x64.tar.gz && \
     rm -rf zulu21.38.21-ca-jdk21.0.5-linux_x64.tar.gz && \
-    ln -sf /opt/zulu21.38.21-ca-jdk21.0.5-linux_x64 /opt/jdk21
+    ln -sf /opt/zulu21.38.21-ca-jdk21.0.5-linux_x64 /opt/jdk21 && \
     curl -OL https://repo1.maven.org/maven2/org/jacoco/org.jacoco.cli/0.8.12/org.jacoco.cli-0.8.12-nodeps.jar
 
 WORKDIR /opt/jacoco-data/
