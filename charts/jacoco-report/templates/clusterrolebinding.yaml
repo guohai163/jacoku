@@ -5,8 +5,8 @@ metadata:
   name:  {{ .Values.rbac.name }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.serviceAccounts.name }}
-    namespace: app-local
+    name: {{ include "jacoco-report.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

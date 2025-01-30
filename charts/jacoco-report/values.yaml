@@ -97,4 +97,4 @@ rbac:
   create: true
   name: "jacoco-report-cr"
 
-extraEnvs: {}
+extraEnvs: []
