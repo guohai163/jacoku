@@ -1,6 +1,6 @@
 import getopt
 import sys
-
+import os 
 import time
 import log4p
 from crontab import CronTab
@@ -30,8 +30,8 @@ def env_check():
     minio_access_key = os.getenv('MINIO_ACCESS')
     minio_secret_key = os.getenv('MINIO_SECRET')
     if minio_url is None or minio_access_key is None or minio_secret_key is None:
-        LOG.error('The required parameters are empty')
-        sys.exit(2)
+        print('The required parameters are empty')
+        # sys.exit(2)
 
 
 def main():
