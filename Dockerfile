@@ -10,6 +10,7 @@ RUN set -eux && \
     apt-get install -y gzip tar curl ca-certificates iputils-tracepath dnsutils vim htop gpg cron pip git && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
+WORKDIR /opt/
 RUN curl -OL https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz && \
     tar -zxvf apache-maven-3.9.9-bin.tar.gz && \
     rm -rf apache-maven-3.9.9-bin.tar.gz && \
