@@ -92,8 +92,8 @@ def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
     # 通过正则分解出项目组和项目名
     pattern = re.compile('([^/:]+)/([^/.]+)\.git$')
     result = pattern.findall(git_url)
-    project_group = result[0]
-    project_name = result[1]
+    project_group = result[0][0]
+    project_name = result[0][1]
     clone_project_local(git_url, project_name, git_commit)
     generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name)
     upload_report(project_group, project_name)
@@ -108,10 +108,10 @@ def get_pod():
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
+                print("%s\t%s\t%s\t" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
                 generate_jacoco_report(i.status.pod_ip, i.metadata.annotations.get('jacoco/git-url'),
                                        i.metadata.annotations.get('jacoco/git-commit'),
                                        i.metadata.annotations.get('jacoco/src-path'))
-                print("%s\t%s\t%s\t" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
 
 
 if __name__ == '__main__':
