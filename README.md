@@ -27,7 +27,7 @@
     kubectl create ns jacoco-report
     helm repo add jacoco-report https://guohai163.github.io/jacoco-report 
     helm repo update
-    helm upgrade --install jacoco-report jacoco-report \
+    helm upgrade --install jacoco-report jacoco-report/jacoco-report \
         --set 'extraEnvs[0].name=MINIO_URL,extraEnvs[0].value=minio.xxx.x' \
         --set 'extraEnvs[1].name=MINIO_ACCESS,extraEnvs[1].value=xxx' \
         --set 'extraEnvs[2].name=MINIO_SECRET,extraEnvs[2].value=xxx'
