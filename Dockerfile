@@ -28,4 +28,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY cron.py .
 COPY main.py .
 
+RUN echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/maven/bin:/opt/jdk11/bin" > /etc/environment
+
 CMD cron && python3 /opt/jacoco-data/cron.py

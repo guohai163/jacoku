@@ -18,15 +18,15 @@ bucket_name = "jacoco-report"
 local_base_dir = '/tmp/code_repo/'
 
 path_date = time.strftime("%Y-%m-%d", time.localtime())
-maven_path = "/opt/apache-maven-3.9.9/bin"
+maven_path = "/opt/maven/bin"
 
 jacoco_cli = "/opt/org.jacoco.cli-0.8.12-nodeps.jar"
 
 git_commit_dic = {}
 
-jdk_path = {11: "/opt/zulu11.76.21-ca-jdk11.0.25-linux_x64",
-            17: "/opt/zulu17.54.21-ca-jdk17.0.13-linux_x64",
-            21: "/opt/zulu21.38.21-ca-jdk21.0.5-linux_x64"}
+jdk_path = {11: "/opt/jdk11",
+            17: "/opt/jdk17",
+            21: "/opt/jdk21"}
 
 
 def path_init():
@@ -101,6 +101,9 @@ def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
 
 
 def get_pod():
+    """
+    遍历集群内所有POD找到有jacoco/enabel=true的POD进行jacoco生成
+    """
     config.load_incluster_config()
     v1 = client.CoreV1Api()
     print("Listing pods with their IPs:")
