@@ -35,4 +35,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY cron.py .
 COPY main.py .
 
-CMD ["cron && python3 /opt/jacoco-data/cron.py"]
+CMD cron && python3 /opt/jacoco-data/cron.py

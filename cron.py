@@ -31,7 +31,7 @@ def env_check():
     minio_secret_key = os.getenv('MINIO_SECRET')
     if minio_url is None or minio_access_key is None or minio_secret_key is None:
         print('The required parameters are empty')
-        # sys.exit(2)
+        sys.exit(2)
 
 
 def main():
