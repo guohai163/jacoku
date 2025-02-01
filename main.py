@@ -103,6 +103,7 @@ def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
 def get_pod():
     """
     遍历集群内所有POD找到有jacoco/enabel=true的POD进行jacoco生成
+    TODO: 此方法需要重构，返回一个集合体
     """
     config.load_incluster_config()
     v1 = client.CoreV1Api()

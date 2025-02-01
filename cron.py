@@ -16,7 +16,7 @@ def init_cron_task():
     cron_manager = CronTab(user=True)
     # 写定时任务,
     jacoco_job = cron_manager.new(
-        command='. /etc/environment;python3 /opt/jacoco-data/main.py >> /var/log/git_backup.log 2>&1')
+        command='. /etc/environment;python3 /opt/jacoco-data/main.py >> /var/log/jaococ-report.log 2>&1')
     cron_parm = os.getenv('CRON')
     if cron_parm is None:
         jacoco_job.setall('0 1 * * *')

@@ -22,7 +22,7 @@
     jacoco/git-commit: 3a3fd777c9a652765730ec8d85b970f6d4c4e271
     ~~~
 3. 在k8s内启动本项目：
-   推荐使用helm来启动本项目。需要准备好 minio的环境并生成好对应 的key
+   推荐使用helm来启动本项目。需要准备好 minio的环境,新建一个名为jacoco-report的存储桶并生成好对应 的key。同时本项目会在K8s集群内创建一个服务账号用来请求集群内的注解权限。
    ~~~ shell
     kubectl create ns jacoco-report
     helm repo add jacoco-report https://guohai163.github.io/jacoco-report 
@@ -34,6 +34,8 @@
    ~~~
    正常启动后，项目会在每日凌晨1点对k8s内项目进行扫描并生成结果到存储桶内。
 4. xml报告的使用
+    最终生成的报告建议配合SonarQube来使用，可以查看代码BUG同时能看到测试的覆盖情况
+    ![sonar覆盖率](./docs/sonar-jacoco.png)
 
 
 ## 相关资料
