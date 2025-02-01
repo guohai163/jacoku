@@ -15,7 +15,7 @@ entries:
     name: jacoco-report
     type: application
     urls:
-    - https://github.com/guohai163/jacoco-report/releases/download/v0.1.2/jacoco-report-0.1.2.tgz
+    - https://github.com/guohai163/jacoco-report/releases/download/v0.1.2-f/jacoco-report-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
