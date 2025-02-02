@@ -9,7 +9,7 @@ import time
 import uuid
 import re
 
-from server.poditem import PodItem
+from poditem import PodItem
 
 minio_client = Minio(os.getenv('MINIO_URL'),
                      access_key=os.getenv('MINIO_ACCESS'),
