@@ -9,6 +9,8 @@ import time
 import uuid
 import re
 
+from server.poditem import PodItem
+
 minio_client = Minio(os.getenv('MINIO_URL'),
                      access_key=os.getenv('MINIO_ACCESS'),
                      secret_key=os.getenv('MINIO_SECRET'),
@@ -63,7 +65,7 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name):
 
 
 def upload_report(project_group, project_name):
-    destination_file = '{}/{}::{}/{}.xml'.format(path_date, project_group, project_name, uuid.uuid1())
+    destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, uuid.uuid1())
     minio_client.fput_object(bucket_name, destination_file, '/tmp/report.xml')
 
 
@@ -100,26 +102,36 @@ def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
     clean_report()
 
 
-def get_pod():
+def get_pod(is_jacoco_enable):
     """
     遍历集群内所有POD找到有jacoco/enabel=true的POD进行jacoco生成
-    TODO: 此方法需要重构，返回一个集合体
     """
-    config.load_incluster_config()
+    config.load_config()
     v1 = client.CoreV1Api()
-    print("Listing pods with their IPs:")
     ret = v1.list_pod_for_all_namespaces(watch=False)
+    pod_list = []
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
+                pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, None,
+                                   i.metadata.annotations.get('jacoco/enable').lower() == 'true',
+                                   i.metadata.annotations.get('jacoco/git-url'),
+                                   i.metadata.annotations.get('jacoco/git-commit'),
+                                   i.metadata.annotations.get('jacoco/src-path'))
+                pod_list.append(pod_item)
                 print("%s\t%s\t%s\t" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
-                generate_jacoco_report(i.status.pod_ip, i.metadata.annotations.get('jacoco/git-url'),
-                                       i.metadata.annotations.get('jacoco/git-commit'),
-                                       i.metadata.annotations.get('jacoco/src-path'))
+            else:
+                pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, None,
+                                   False, '', '', '')
+                if not is_jacoco_enable:
+                    pod_list.append(pod_item)
+    return pod_list
 
 
 if __name__ == '__main__':
     print('jacoco-report start ...')
     check_minio()
     path_init()
-    get_pod()
+    list_pod = get_pod(True)
+    for pod in list_pod:
+        generate_jacoco_report(pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)

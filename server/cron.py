@@ -1,9 +1,14 @@
 import getopt
+import json
 import sys
-import os 
+import os
 import time
 import log4p
 from crontab import CronTab
+import asyncio
+import tornado
+
+from main import get_pod
 
 LOG = log4p.GetLogger('__main__').logger
 
@@ -25,6 +30,7 @@ def init_cron_task():
         jacoco_job.setall(cron_parm)
     cron_manager.write()
 
+
 def env_check():
     minio_url = os.getenv('MINIO_URL')
     minio_access_key = os.getenv('MINIO_ACCESS')
@@ -34,11 +40,29 @@ def env_check():
         sys.exit(2)
 
 
+class ListOfListsEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, list):
+            return obj
+        return obj.toJSON()
+
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(json.dumps(get_pod(), cls=ListOfListsEncoder))
+
+
+async def server_start():
+    app = tornado.web.Application([
+        (r"/api/list", MainHandler),
+    ])
+    app.listen(1219)
+    await asyncio.Event().wait()
+
+
 def main():
     init_cron_task()
-    while True:
-        time.sleep(60)
-        LOG.info('sleep 60s')
+    asyncio.run(server_start())
 
 
 if __name__ == '__main__':

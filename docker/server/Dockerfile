@@ -22,11 +22,8 @@ RUN curl -OL https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-
     curl -OL https://repo1.maven.org/maven2/org/jacoco/org.jacoco.cli/0.8.12/org.jacoco.cli-0.8.12-nodeps.jar
 
 WORKDIR /opt/jacoco-data/
-COPY requirements.txt ./
+COPY server/ ./
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY cron.py .
-COPY main.py .
 
 RUN echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/maven/bin:/opt/jdk11/bin" > /etc/environment
 
