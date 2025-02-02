@@ -49,7 +49,7 @@ class ListOfListsEncoder(json.JSONEncoder):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write(json.dumps(get_pod(), cls=ListOfListsEncoder))
+        self.write(json.dumps(get_pod(False), cls=ListOfListsEncoder))
 
 
 async def server_start():
