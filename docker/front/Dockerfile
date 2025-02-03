@@ -3,7 +3,6 @@ FROM node:lts-bookworm AS base
 
 FROM base AS deps
 
-RUN apk add --no-cache libc6-compat
 WORKDIR /opt/front-jacoco
 
 COPY front-jacoco/package.json front-jacoco/yarn.lock* front-jacoco/package-lock.json* front-jacoco/pnpm-lock.yaml* front-jacoco/.npmrc* ./
