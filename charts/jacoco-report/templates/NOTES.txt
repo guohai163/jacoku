@@ -1,2 +1,10 @@
 项目部署成功，查看项目运行状态
-kubectl get pod --namespace {{ .Release.Namespace }}  -l "app.kubernetes.io/instance={{ .Release.Name }}"
+kubectl logs -f --namespace {{ .Release.Namespace }}  -l "app.kubernetes.io/instance={{ .Release.Name }}"
+
+
+{{- if .Values.ingress.enabled -}}
+使用浏览器打开
+
+http://{{ .Values.ingress.host}}
+
+{{- end}}

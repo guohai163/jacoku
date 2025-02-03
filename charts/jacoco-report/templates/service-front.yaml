@@ -1,16 +1,18 @@
+{{- if .Values.frontService.create -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "jacoco-report.fullname" . }}
+  name: {{ include "jacoco-report.fullname" . }}-front
   labels:
     {{- include "jacoco-report.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: 80
-      targetPort: 1219
+      targetPort: 3000
       protocol: TCP
       name: http
   selector:
-    jacoco-report: {{ include "jacoco-report.fullname" . }}
     {{- include "jacoco-report.selectorLabels" . | nindent 4 }}
+    jacoco-report: {{ include "jacoco-report.fullname" . }}-front
+{{- end}}
