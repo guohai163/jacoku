@@ -86,7 +86,7 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -103,7 +103,7 @@ def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
     clone_project_local(git_url, project_name, git_commit)
     generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name)
     upload_report(project_group, project_name)
-    pod_last_check[pod_ip] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     clean_report()
 
 
@@ -119,7 +119,7 @@ def get_pod(is_jacoco_enable):
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
                 last_time = None
-                if not pod_last_check[i.metadata.name] is None:
+                if not pod_last_check.get(i.metadata.name) is None:
                     last_time = pod_last_check[i.metadata.name]
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
@@ -141,4 +141,4 @@ if __name__ == '__main__':
     path_init()
     list_pod = get_pod(True)
     for pod in list_pod:
-        generate_jacoco_report(pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)
+        generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)
