@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM debian:bookworm
 
 LABEL org.opencontainers.image.authors="GUOHAI.ORG"
 LABEL org.opencontainers.image.source=https://github.com/guohai163/jacoco-report
