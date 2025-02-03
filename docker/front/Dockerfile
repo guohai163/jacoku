@@ -18,7 +18,7 @@ RUN \
 FROM base AS builder
 
 WORKDIR /opt/front-jacoco
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /opt/front-jacoco/node_modules ./node_modules
 
 COPY front-jacoco/ ./
 
