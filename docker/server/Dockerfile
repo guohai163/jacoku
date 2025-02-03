@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM python:3.12-bookworm
 
 LABEL org.opencontainers.image.authors="GUOHAI.ORG"
 LABEL org.opencontainers.image.source=https://github.com/guohai163/jacoco-report
@@ -7,7 +7,7 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/maven
 # 基础功能安装
 RUN set -eux && \
     apt-get update -y && \
-    apt-get install -y gzip tar curl ca-certificates iputils-tracepath dnsutils vim htop gpg cron pip git && \
+    apt-get install -y gzip tar curl ca-certificates iputils-tracepath dnsutils vim htop gpg cron git && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 WORKDIR /opt/
@@ -25,6 +25,5 @@ WORKDIR /opt/jacoco-data/
 COPY server/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/maven/bin:/opt/jdk11/bin" > /etc/environment
 COPY server/ ./
-CMD cron && python3 /opt/jacoco-data/cron.py
+CMD cron && printenv | grep -v "no_proxy" >> /etc/environment && python3 /opt/jacoco-data/cron.py
