@@ -25,6 +25,7 @@ def init_cron_task():
         jacoco_job.setall(cron_parm)
     cron_manager.write()
 
+
 def env_check():
     minio_url = os.getenv('MINIO_URL')
     minio_access_key = os.getenv('MINIO_ACCESS')
@@ -32,7 +33,6 @@ def env_check():
     if minio_url is None or minio_access_key is None or minio_secret_key is None:
         print('The required parameters are empty')
         sys.exit(2)
-
 
 def main():
     init_cron_task()

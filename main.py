@@ -9,10 +9,8 @@ import time
 import uuid
 import re
 
-minio_client = Minio(os.getenv('MINIO_URL'),
-                     access_key=os.getenv('MINIO_ACCESS'),
-                     secret_key=os.getenv('MINIO_SECRET'),
-                     )
+from poditem import PodItem
+
 
 bucket_name = "jacoco-report"
 local_base_dir = '/tmp/code_repo/'
@@ -23,6 +21,9 @@ maven_path = "/opt/maven/bin"
 jacoco_cli = "/opt/org.jacoco.cli-0.8.12-nodeps.jar"
 
 git_commit_dic = {}
+
+# pod的最后检查时间
+pod_last_check = {}
 
 jdk_path = {11: "/opt/jdk11",
             17: "/opt/jdk17",
@@ -63,7 +64,12 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name):
 
 
 def upload_report(project_group, project_name):
-    destination_file = '{}/{}::{}/{}.xml'.format(path_date, project_group, project_name, uuid.uuid1())
+    destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, uuid.uuid1())
+    minio_client = Minio(os.getenv('MINIO_URL'),
+                         access_key=os.getenv('MINIO_ACCESS'),
+                         secret_key=os.getenv('MINIO_SECRET'),
+                         )
+    check_minio(minio_client)
     minio_client.fput_object(bucket_name, destination_file, '/tmp/report.xml')
 
 
@@ -71,7 +77,7 @@ def clean_report():
     subprocess.call('rm -rf /tmp/report.xml /tmp/report.exec', shell=True)
 
 
-def check_minio():
+def check_minio(minio_client):
     found = minio_client.bucket_exists(bucket_name)
     if not found:
         minio_client.make_bucket(bucket_name)
@@ -80,7 +86,7 @@ def check_minio():
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -97,29 +103,42 @@ def generate_jacoco_report(pod_ip, git_url, git_commit, src_path):
     clone_project_local(git_url, project_name, git_commit)
     generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name)
     upload_report(project_group, project_name)
+    pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     clean_report()
 
 
-def get_pod():
+def get_pod(is_jacoco_enable):
     """
     遍历集群内所有POD找到有jacoco/enabel=true的POD进行jacoco生成
-    TODO: 此方法需要重构，返回一个集合体
     """
-    config.load_incluster_config()
+    config.load_config()
     v1 = client.CoreV1Api()
-    print("Listing pods with their IPs:")
     ret = v1.list_pod_for_all_namespaces(watch=False)
+    pod_list = []
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
+                last_time = None
+                if not pod_last_check.get(i.metadata.name) is None:
+                    last_time = pod_last_check[i.metadata.name]
+                pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
+                                   i.metadata.annotations.get('jacoco/enable').lower() == 'true',
+                                   i.metadata.annotations.get('jacoco/git-url'),
+                                   i.metadata.annotations.get('jacoco/git-commit'),
+                                   i.metadata.annotations.get('jacoco/src-path'))
+                pod_list.append(pod_item)
                 print("%s\t%s\t%s\t" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
-                generate_jacoco_report(i.status.pod_ip, i.metadata.annotations.get('jacoco/git-url'),
-                                       i.metadata.annotations.get('jacoco/git-commit'),
-                                       i.metadata.annotations.get('jacoco/src-path'))
+            else:
+                pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, None,
+                                   False, '', '', '')
+                if not is_jacoco_enable:
+                    pod_list.append(pod_item)
+    return pod_list
 
 
 if __name__ == '__main__':
     print('jacoco-report start ...')
-    check_minio()
     path_init()
-    get_pod()
+    list_pod = get_pod(True)
+    for pod in list_pod:
+        generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)
