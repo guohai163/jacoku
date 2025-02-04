@@ -25,7 +25,7 @@ WORKDIR /opt/jacoco-data/
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY cront.py .
+COPY cron.py .
 COPY main.py .
 COPY poditem.py .
 CMD cron && printenv | grep -v "no_proxy" >> /etc/environment && python3 /opt/jacoco-data/cron.py
