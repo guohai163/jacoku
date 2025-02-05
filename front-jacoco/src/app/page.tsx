@@ -16,7 +16,7 @@ export default function Home() {
         })
         .catch(error => console.error(error))
   },[]);
-    const columns: GridColDef<(typeof data)[number]>[] = [
+    const columns: GridColDef[] = [
         { field: 'pod_ns', headerName: 'pod namespace', width: 100 },
         { field: 'pod_name', headerName: 'pod name', width: 150 },
         { field: 'enable', headerName: '是否开启jacoco注解', width: 140 },
