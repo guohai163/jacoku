@@ -1,5 +1,4 @@
 'use client';
-import Image from "next/image";
 import {useEffect, useState} from "react";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
@@ -30,7 +29,7 @@ export default function Home() {
       <DataGrid
           columns={columns}
           rows={data}
-          getRowId={(row: any) =>  row.pod_name}
+          getRowId={(row) =>  row.pod_name}
           initialState={{
               pagination: {
                   paginationModel: {
