@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import io
 import os
+import pickle
 import shutil
 from kubernetes import client, config
 import subprocess
@@ -10,7 +11,6 @@ import uuid
 import re
 
 from poditem import PodItem
-
 
 bucket_name = "jacoco-report"
 local_base_dir = '/tmp/code_repo/'
@@ -24,6 +24,8 @@ git_commit_dic = {}
 
 # pod的最后检查时间
 pod_last_check = {}
+
+check_pickle_file = "last_check.pickle"
 
 jdk_path = {11: "/opt/jdk11",
             17: "/opt/jdk17",
@@ -115,12 +117,16 @@ def get_pod(is_jacoco_enable):
     v1 = client.CoreV1Api()
     ret = v1.list_pod_for_all_namespaces(watch=False)
     pod_list = []
+    pod_last_check_temp = None
+    if os.path.exists(check_pickle_file):
+        with open(check_pickle_file, 'rb') as check_file_r:
+            pod_last_check_temp = pickle.load(check_file_r)
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
                 last_time = None
-                if not pod_last_check.get(i.metadata.name) is None:
-                    last_time = pod_last_check[i.metadata.name]
+                if not pod_last_check_temp.get(i.metadata.name) is None:
+                    last_time = pod_last_check_temp[i.metadata.name]
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
                                    i.metadata.annotations.get('jacoco/git-url'),
@@ -142,3 +148,6 @@ if __name__ == '__main__':
     list_pod = get_pod(True)
     for pod in list_pod:
         generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)
+    # 多进程中共享文件使用
+    with open(check_pickle_file, 'wb') as check_file:
+        pickle.dump(pod_last_check, check_file)
