@@ -9,7 +9,7 @@ export default function Home() {
   const [data, setData] = useState();
   useEffect(()=>{
 
-    fetch('http://jacoco.gydev.cn/api/list')
+    fetch('/api/list')
         .then(response => response.json())
         .then(data => {
           console.log(data)
