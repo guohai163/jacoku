@@ -18,11 +18,11 @@ export default function Home() {
   },[]);
     const columns: GridColDef[] = [
         { field: 'pod_ns', headerName: 'pod namespace', width: 100 },
-        { field: 'pod_name', headerName: 'pod name', width: 150 },
+        { field: 'pod_name', headerName: 'pod name', width: 350 },
         { field: 'enable', headerName: '是否开启jacoco注解', width: 140 },
         { field: 'git_url', headerName: 'git', width: 300 },
-        { field: 'git_commit', headerName: 'git commit', width: 200 },
-        { field: 'last_check_time', headerName: '最后检查时间', width: 140 },
+        { field: 'git_commit', headerName: 'git commit', width: 350 },
+        { field: 'last_check_time', headerName: '最后检查时间', width: 150 },
         ];
   return (
       <Box sx={{ height: '100%', width: '100%' }}>

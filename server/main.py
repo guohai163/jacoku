@@ -98,7 +98,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path):
                                                                                          pod_ip)
     subprocess.call(call_command, shell=True)
     # 通过正则分解出项目组和项目名
-    pattern = re.compile('([^/:]+)/([^/.]+)\.git$')
+    pattern = re.compile(r'([^/:]+)/([^/.]+)\.git$')
     result = pattern.findall(git_url)
     project_group = result[0][0]
     project_name = result[0][1]
@@ -117,7 +117,7 @@ def get_pod(is_jacoco_enable):
     v1 = client.CoreV1Api()
     ret = v1.list_pod_for_all_namespaces(watch=False)
     pod_list = []
-    pod_last_check_temp = None
+    pod_last_check_temp = {}
     if os.path.exists(check_pickle_file):
         with open(check_pickle_file, 'rb') as check_file_r:
             pod_last_check_temp = pickle.load(check_file_r)
