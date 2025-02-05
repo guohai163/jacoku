@@ -51,7 +51,7 @@ def clone_project_local(git_url, project_name, git_commit):
         git_commit_dic[project_name] = ''
     if git_commit_dic.get(project_name) != git_commit:
         subprocess.call('git checkout {}'.format(git_commit), shell=True, cwd=local_base_dir + '/' + project_name)
-        subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn package'.format(jdk_path[11], maven_path),
+        subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn package -DskipTests'.format(jdk_path[11], maven_path),
                         shell=True, cwd=local_base_dir + '/' + project_name)
         git_commit_dic[project_name] = git_commit
 
