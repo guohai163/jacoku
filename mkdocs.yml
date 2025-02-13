@@ -1,5 +1,7 @@
 site_name: jacoco-report代码覆盖率报告
 site_url: https://guohai163.github.com/jacoco-report
+repo_url: https://github.com/guohai163/jacoco-report
+repo_name: "guohai163/jacoco-report"
 theme:
   name: material
   features:
@@ -8,9 +10,6 @@ theme:
     - navigation.instant
     - navigation.sections
     - content.code.copy
-
-
-
   include_sidebar: true
 
 nav:
