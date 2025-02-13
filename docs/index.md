@@ -4,7 +4,7 @@
 最终报告会上传到minio的对象存储中。
 通过以上方案可以节省开发人员书写单元测试，并可以观测自动/功能的测试覆盖业务情况。
 
-![frame-diagram](./frame-diagram.svg)
+![frame-diagram](./images/frame-diagram.svg)
 
 ### 本项目部署方法
 
@@ -45,7 +45,7 @@
    
 4. xml报告的使用
     最终生成的报告建议配合SonarQube来使用，可以查看代码BUG同时能看到测试的覆盖情况
-    ![sonar覆盖率](./docs/sonar-jacoco.png)
+    ![sonar覆盖率](./images/sonar-jacoco.png)
 
 
 ## 相关资料
