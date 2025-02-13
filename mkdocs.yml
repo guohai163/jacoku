@@ -17,8 +17,9 @@ nav:
   - 快速开始:
     - 项目介绍: "index.md"
     - 快速部署: "depl.md"
-  - 完整环境说明:
+  - 完整部署说明:
     - 流程介绍: "full-depl/flow-chart.md"
     - 测试对象准备: "full-depl/test-object.md"
     - 进行测试: "full-depl/testing.md"
     - 生成中间文件: "full-depl/jacoco-report.md"
+  - 二次开发说明: "customization/index.md"
