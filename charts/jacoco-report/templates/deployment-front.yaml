@@ -1,7 +1,8 @@
+{{- if .Values.frontService.create -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "jacoco-report.fullname" . }}
+  name: {{ include "jacoco-report.fullname" . }}-front
   labels:
     {{- include "jacoco-report.labels" . | nindent 4 }}
 spec:
@@ -16,7 +17,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        jacoco-report: {{ include "jacoco-report.fullname" . }}
+        jacoco-report: {{ include "jacoco-report.fullname" . }}-front
         {{- include "jacoco-report.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
@@ -26,14 +27,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "jacoco-report.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}-front
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}-front:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.extraEnvs }}
           env: {{ toYaml .Values.extraEnvs | nindent 12 }}
@@ -60,3 +60,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}

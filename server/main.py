@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import io
 import os
+import pickle
 import shutil
 from kubernetes import client, config
 import subprocess
@@ -10,7 +11,6 @@ import uuid
 import re
 
 from poditem import PodItem
-
 
 bucket_name = "jacoco-report"
 local_base_dir = '/tmp/code_repo/'
@@ -24,6 +24,8 @@ git_commit_dic = {}
 
 # pod的最后检查时间
 pod_last_check = {}
+
+check_pickle_file = "last_check.pickle"
 
 jdk_path = {11: "/opt/jdk11",
             17: "/opt/jdk17",
@@ -49,8 +51,8 @@ def clone_project_local(git_url, project_name, git_commit):
         git_commit_dic[project_name] = ''
     if git_commit_dic.get(project_name) != git_commit:
         subprocess.call('git checkout {}'.format(git_commit), shell=True, cwd=local_base_dir + '/' + project_name)
-        subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn package'.format(jdk_path[11], maven_path),
-                        shell=True, cwd=local_base_dir + '/' + project_name)
+        subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
+                        .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name)
         git_commit_dic[project_name] = git_commit
 
 
@@ -96,7 +98,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path):
                                                                                          pod_ip)
     subprocess.call(call_command, shell=True)
     # 通过正则分解出项目组和项目名
-    pattern = re.compile('([^/:]+)/([^/.]+)\.git$')
+    pattern = re.compile(r'([^/:]+)/([^/.]+)\.git$')
     result = pattern.findall(git_url)
     project_group = result[0][0]
     project_name = result[0][1]
@@ -115,12 +117,16 @@ def get_pod(is_jacoco_enable):
     v1 = client.CoreV1Api()
     ret = v1.list_pod_for_all_namespaces(watch=False)
     pod_list = []
+    pod_last_check_temp = {}
+    if os.path.exists(check_pickle_file):
+        with open(check_pickle_file, 'rb') as check_file_r:
+            pod_last_check_temp = pickle.load(check_file_r)
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
                 last_time = None
-                if not pod_last_check.get(i.metadata.name) is None:
-                    last_time = pod_last_check[i.metadata.name]
+                if not pod_last_check_temp.get(i.metadata.name) is None:
+                    last_time = pod_last_check_temp[i.metadata.name]
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
                                    i.metadata.annotations.get('jacoco/git-url'),
@@ -142,3 +148,6 @@ if __name__ == '__main__':
     list_pod = get_pod(True)
     for pod in list_pod:
         generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)
+    # 多进程中共享文件使用
+    with open(check_pickle_file, 'wb') as check_file:
+        pickle.dump(pod_last_check, check_file)
