@@ -55,12 +55,18 @@ def clone_project_local(git_url, project_name, git_commit):
                         .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name)
         git_commit_dic[project_name] = git_commit
 
+def get_report_format():
+    formaat_parm = os.getenv('FORMAT')
+    if formaat_parm is None:
+        return 'html'
+    else:
+        return formaat_parm
 
 def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name):
     print("%s\t%s\t%s" % (jacoco_exec, git_url, git_commit))
     call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                     'java -jar {} report /tmp/report.exec --classfiles ./target/classes  --sourcefiles ./src/main/java '
-                    '--xml /tmp/report.xml').format(jdk_path[11], jdk_path[11], jacoco_cli)
+                    '--{} /tmp/report.xml').format(jdk_path[11], jdk_path[11], jacoco_cli, get_report_format())
     print(call_command)
     subprocess.call(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path)
 
