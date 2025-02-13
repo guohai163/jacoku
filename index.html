@@ -186,11 +186,28 @@
         <a href="full-depl/flow-chart/" class="md-tabs__link">
           
   
-  完整环境说明
+  完整部署说明
 
         </a>
       </li>
     
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="customization/" class="md-tabs__link">
+        
+  
+    
+  
+  二次开发说明
+
+      </a>
+    </li>
   
 
       
@@ -326,30 +343,10 @@
     jaocoo报告抓取
   </a>
   
-    <nav class="md-nav" aria-label="jaocoo报告抓取">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    本项目部署方法
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    完整解决方案
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     相关资料
   </a>
   
@@ -416,7 +413,7 @@
             
   
   <span class="md-ellipsis">
-    完整环境说明
+    完整部署说明
   </span>
   
 
@@ -426,7 +423,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            完整环境说明
+            完整部署说明
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -517,6 +514,25 @@
   
 
     
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="customization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    二次开发说明
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -546,30 +562,10 @@
     jaocoo报告抓取
   </a>
   
-    <nav class="md-nav" aria-label="jaocoo报告抓取">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    本项目部署方法
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    完整解决方案
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     相关资料
   </a>
   
@@ -597,51 +593,12 @@
 最终报告会上传到minio的对象存储中。
 通过以上方案可以节省开发人员书写单元测试，并可以观测自动/功能的测试覆盖业务情况。</p>
 <p><img alt="frame-diagram" src="images/frame-diagram.svg" /></p>
-<h3 id="_1">本项目部署方法</h3>
-<p>推荐使用helm来启动本项目。需要准备好 minio的环境,新建一个名为jacoco-report的存储桶并生成好对应 的key。同时本项目会在K8s集群内创建一个服务账号用来请求集群内的注解权限。
-   ~~~ shell
-    kubectl create ns jacoco-report
-    helm repo add jacoco-report https://guohai163.github.io/jacoco-report 
-    helm repo update
-    helm upgrade --install jacoco-report jacoco-report/jacoco-report \
-        --set 'extraEnvs[0].name=MINIO_URL,extraEnvs[0].value=minio.xxx.x' \
-        --set 'extraEnvs[1].name=MINIO_ACCESS,extraEnvs[1].value=xxx' \
-        --set 'extraEnvs[2].name=MINIO_SECRET,extraEnvs[2].value=xxx'
-   ~~~
-   正常启动后，项目会在每日凌晨1点对k8s内项目进行扫描并生成结果到存储桶内。</p>
-<h3 id="_2">完整解决方案</h3>
-<ol>
-<li>
-<p>java项目打包</p>
-</li>
-<li>
-<p>对java项目进行打桩:
-    方法是下载，jacoco-agent。在java项目启动时的进行注入。推荐的一个启动参数 -javaagent:org.jacoco.agent-runtime.jar=output=tcpserver,address=<em> 主要修改output参数为tcp方便下一步的集中抓取.并修改address为</em>可以在任意请求来源</p>
-</li>
-<li>对POD增加相应的注解：
-    本步的主要作用是让抓取器知道本POD已经打开了，jacoco server模式。同时告知抓取器本POD对应的源码URL和commit值，以让抓取器去抓取代码生成覆盖率报告
-    ~~~ yaml
-    <!-- 标记是否开启jacoco -->
-    jacoco/enable: true
-    <!-- 源码地址 -->
-    jacoco/git-url: https://github.com/guohai163/java-sql-web.git
-    <!-- 非必须参数，如果本pod对应的代码不在根目录。需要增加此参数 -->
-    jacoco/src-path: code-pom-path
-    <!-- commit值 -->
-    jacoco/git-commit: 3a3fd777c9a652765730ec8d85b970f6d4c4e271
-    ~~~</li>
-<li>
-<p>在k8s内启动本项目：</p>
-</li>
-<li>
-<p>xml报告的使用
-    最终生成的报告建议配合SonarQube来使用，可以查看代码BUG同时能看到测试的覆盖情况
-    <img alt="sonar覆盖率" src="images/sonar-jacoco.png" /></p>
-</li>
-</ol>
-<h2 id="_3">相关资料</h2>
+<h2 id="_1">相关资料</h2>
 <ul>
-<li><a href="https://www.jacoco.org/">jacoco官网</a></li>
+<li><a href="https://kubernetes.io/">Kubernetes</a></li>
+<li><a href="https://www.jacoco.org/">Java Code Coverage</a></li>
+<li><a href="https://min.io/">MinIO</a></li>
+<li><a href="https://www.sonarsource.com/">Sonar</a></li>
 </ul>
 
 
