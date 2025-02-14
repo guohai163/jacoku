@@ -4,6 +4,8 @@ import io
 import os
 import pickle
 import shutil
+
+import log4p
 from kubernetes import client, config
 import subprocess
 from minio import Minio
@@ -12,6 +14,8 @@ import uuid
 import re
 
 from poditem import PodItem
+
+LOG = log4p.GetLogger('__main__').logger
 
 bucket_name = "jacoco-report"
 local_base_dir = '/tmp/code_repo/'
@@ -68,7 +72,7 @@ def get_report_format():
         return format_parm
 
 
-def upload_local_directory_to_minio(local_path, minio_path):
+def upload_local_directory_to_minio(local_path, minio_path, minio_client):
     """
     如果生成报告为html格式，上传目录
 
@@ -77,12 +81,6 @@ def upload_local_directory_to_minio(local_path, minio_path):
         minio_path - 远程文件路径
     """
     assert os.path.isdir(local_path)
-    minio_client = Minio(os.getenv('MINIO_URL'),
-                         access_key=os.getenv('MINIO_ACCESS'),
-                         secret_key=os.getenv('MINIO_SECRET'),
-                         )
-    check_minio(minio_client)
-
     for local_file in glob.glob(local_path + '/**'):
         local_file = local_file.replace(os.sep, "/")
         if not os.path.isfile(local_file):
@@ -97,22 +95,40 @@ def upload_local_directory_to_minio(local_path, minio_path):
 
 
 def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, report_format):
-    print("%s\t%s\t%s" % (jacoco_exec, git_url, git_commit))
-    call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
-                    'java -jar {} report /tmp/report.exec --classfiles ./target/classes  --sourcefiles ./src/main/java '
-                    '--{} /tmp/report.xml').format(jdk_path[11], jdk_path[11], jacoco_cli, get_report_format())
+    """
+    按指定格式生成报告
+    """
+    LOG.info("%s\t%s\t%s",jacoco_exec, git_url, git_commit)
+    call_command = ''
+    if report_format == 'xml':
+        call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
+                        'java -jar {} report /tmp/report.exec --classfiles ./target/classes '
+                        '--sourcefiles ./src/main/java --xml /tmp/report.xml')\
+            .format(jdk_path[11], jdk_path[11], jacoco_cli)
+    else:
+        call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
+                        'java -jar {} report /tmp/report.exec --classfiles ./target/classes '
+                        '--sourcefiles ./src/main/java --html /tmp/report_html')\
+            .format(jdk_path[11], jdk_path[11], jacoco_cli)
     print(call_command)
     subprocess.call(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path)
 
 
-def upload_report(project_group, project_name):
-    destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, uuid.uuid1())
+def upload_report(project_group, project_name, pod_name, report_format):
+    """
+    上传报告到minio对象存储
+    """
     minio_client = Minio(os.getenv('MINIO_URL'),
                          access_key=os.getenv('MINIO_ACCESS'),
                          secret_key=os.getenv('MINIO_SECRET'),
                          )
     check_minio(minio_client)
-    minio_client.fput_object(bucket_name, destination_file, '/tmp/report.xml')
+    if report_format == 'xml':
+        destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, pod_name)
+        minio_client.fput_object(bucket_name, destination_file, '/tmp/report.xml')
+    else:
+        destination_path = '{}/{}/{}/{}'.format(path_date, project_group, project_name,pod_name)
+        upload_local_directory_to_minio('/tmp/report_html',destination_path, minio_client)
 
 
 def clean_report():
