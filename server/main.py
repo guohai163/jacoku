@@ -19,6 +19,7 @@ LOG = log4p.GetLogger('__main__').logger
 
 bucket_name = "jacoco-report"
 local_base_dir = '/tmp/code_repo/'
+REPORT_PATH = '/data/report/'
 
 path_date = time.strftime("%Y-%m-%d", time.localtime())
 maven_path = "/opt/maven/bin"
@@ -45,6 +46,8 @@ def path_init():
     if os.path.exists(local_base_dir):
         shutil.rmtree(local_base_dir)
     os.makedirs(local_base_dir)
+    if not os.path.exists(REPORT_PATH):
+        os.makedirs(REPORT_PATH)
 
 
 def clone_project_local(git_url, project_name, git_commit):
@@ -59,17 +62,6 @@ def clone_project_local(git_url, project_name, git_commit):
         subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
                         .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name)
         git_commit_dic[project_name] = git_commit
-
-
-def get_report_format():
-    """
-    通过环境变量确认文件格式
-    """
-    format_parm = os.getenv('FORMAT')
-    if format_parm is None:
-        return 'html'
-    else:
-        return format_parm
 
 
 def upload_local_directory_to_minio(local_path, minio_path, minio_client):
@@ -98,17 +90,17 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, re
     """
     按指定格式生成报告
     """
-    LOG.info("%s\t%s\t%s",jacoco_exec, git_url, git_commit)
+    LOG.info("%s\t%s\t%s", jacoco_exec, git_url, git_commit)
     call_command = ''
     if report_format == 'xml':
         call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                         'java -jar {} report /tmp/report.exec --classfiles ./target/classes '
-                        '--sourcefiles ./src/main/java --xml /tmp/report.xml')\
+                        '--sourcefiles ./src/main/java --xml /tmp/report.xml') \
             .format(jdk_path[11], jdk_path[11], jacoco_cli)
     else:
         call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                         'java -jar {} report /tmp/report.exec --classfiles ./target/classes '
-                        '--sourcefiles ./src/main/java --html /tmp/report_html')\
+                        '--sourcefiles ./src/main/java --html /tmp/report_html') \
             .format(jdk_path[11], jdk_path[11], jacoco_cli)
     print(call_command)
     subprocess.call(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path)
@@ -127,8 +119,8 @@ def upload_report(project_group, project_name, pod_name, report_format):
         destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, pod_name)
         minio_client.fput_object(bucket_name, destination_file, '/tmp/report.xml')
     else:
-        destination_path = '{}/{}/{}/{}'.format(path_date, project_group, project_name,pod_name)
-        upload_local_directory_to_minio('/tmp/report_html',destination_path, minio_client)
+        destination_path = '{}/{}/{}/{}'.format(path_date, project_group, project_name, pod_name)
+        upload_local_directory_to_minio('/tmp/report_html', destination_path, minio_client)
 
 
 def clean_report():
@@ -144,7 +136,7 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, report_format):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, report_format, upload_mini_enable):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -160,7 +152,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, repo
     project_name = result[0][1]
     clone_project_local(git_url, project_name, git_commit)
     generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name, report_format)
-    upload_report(project_group, project_name,pod_name , report_format)
+    upload_report(project_group, project_name, pod_name, report_format)
     pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     clean_report()
 
@@ -198,13 +190,36 @@ def get_pod(is_jacoco_enable):
     return pod_list
 
 
+def get_minio_enable():
+    mini_enable = os.getenv('MINIO_ENABLE')
+    if mini_enable is None:
+        return False
+    else:
+        return mini_enable
+
+
+def get_report_format():
+    """
+    通过环境变量确认文件格式
+    """
+    format_parm = os.getenv('FORMAT')
+    if format_parm is None:
+        return 'html'
+    else:
+        return format_parm
+
+
 if __name__ == '__main__':
-    print('jacoco-report start ...')
+    print('jacoku start ...')
     path_init()
-    list_pod = get_pod(True)
+    # 获取报告格式
     report_format = get_report_format()
+    # 获取是否上传
+    upload_mini_enable = get_minio_enable()
+    list_pod = get_pod(True)
     for pod in list_pod:
-        generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path, report_format)
+        generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path, report_format,
+                               upload_mini_enable)
     # 多进程中共享文件使用
     with open(check_pickle_file, 'wb') as check_file:
         pickle.dump(pod_last_check, check_file)

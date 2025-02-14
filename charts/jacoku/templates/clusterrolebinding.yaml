@@ -5,7 +5,7 @@ metadata:
   name:  {{ .Values.rbac.name }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "jacoco-report.serviceAccountName" . }}
+    name: {{ include "jacoku.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io

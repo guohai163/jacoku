@@ -1,0 +1,18 @@
+{{- if .Values.frontService.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "jacoku.fullname" . }}-front
+  labels:
+    {{- include "jacoku.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "jacoku.selectorLabels" . | nindent 4 }}
+    jacoku: {{ include "jacoku.fullname" . }}-front
+{{- end}}

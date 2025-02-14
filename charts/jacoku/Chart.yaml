@@ -1,6 +1,6 @@
 apiVersion: v2
-name: jacoco-report
-description: jacoco报告生成抓取器
+name: jacoku
+description: Java code Coverage within Kubernetes
 
 type: application
 
@@ -19,5 +19,5 @@ keywords:
   - java
   - jacoco
   - sonar
-home: https://github.com/guohai163/jacoco-report
+home: https://github.com/guohai163/jacoku
 kubeVersion: '>= 1.24.0-0'

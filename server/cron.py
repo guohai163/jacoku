@@ -14,6 +14,7 @@ LOG = log4p.GetLogger('__main__').logger
 
 REPORT_PATH = '/data/report/'
 
+
 def init_cron_task():
     """
     初始化定时任务
@@ -33,12 +34,17 @@ def init_cron_task():
 
 
 def env_check():
-    minio_url = os.getenv('MINIO_URL')
-    minio_access_key = os.getenv('MINIO_ACCESS')
-    minio_secret_key = os.getenv('MINIO_SECRET')
-    if minio_url is None or minio_access_key is None or minio_secret_key is None:
-        print('The required parameters are empty')
-        sys.exit(2)
+    mini_enable = os.getenv('MINIO_ENABLE')
+    if mini_enable is None:
+        return
+    else:
+        if mini_enable:
+            minio_url = os.getenv('MINIO_URL')
+            minio_access_key = os.getenv('MINIO_ACCESS')
+            minio_secret_key = os.getenv('MINIO_SECRET')
+            if minio_url is None or minio_access_key is None or minio_secret_key is None:
+                print('The required parameters are empty')
+                sys.exit(2)
 
 
 class ListOfListsEncoder(json.JSONEncoder):
@@ -67,6 +73,12 @@ class ReportBrowser(tornado.web.RequestHandler):
             if not self.request.path.endswith('/'):
                 self.redirect(self.request.path + '/')
                 return
+        if path[-3:] == 'gif':
+            self.set_header("Content-type", "image/gif")
+        if path[-3:] == 'css':
+            self.set_header("Content-type", "text/css")
+        if path[-2:] == 'js':
+            self.set_header("Content-type", "text/javascript")
 
         with open(local_path, 'rb') as f:
             self.write(f.read())

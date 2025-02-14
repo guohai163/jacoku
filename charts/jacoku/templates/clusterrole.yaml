@@ -3,7 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    {{- include "jacoco-report.labels" . | nindent 4 }}
+    {{- include "jacoku.labels" . | nindent 4 }}
   name: {{ .Values.rbac.name }}
 rules:
   - apiGroups:

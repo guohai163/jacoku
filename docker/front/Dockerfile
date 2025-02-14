@@ -34,7 +34,7 @@ FROM base AS runner
 WORKDIR /opt/front-jacoco
 
 LABEL org.opencontainers.image.authors="GUOHAI.ORG"
-LABEL org.opencontainers.image.source=https://github.com/guohai163/jacoco-report
+LABEL org.opencontainers.image.source=https://github.com/guohai163/jacoku
 
 ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.

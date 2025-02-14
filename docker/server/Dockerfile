@@ -1,7 +1,7 @@
 FROM python:3.12-bookworm
 
 LABEL org.opencontainers.image.authors="GUOHAI.ORG"
-LABEL org.opencontainers.image.source=https://github.com/guohai163/jacoco-report
+LABEL org.opencontainers.image.source=https://github.com/guohai163/jacoku
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/maven/bin:/opt/jdk11/bin
 # 基础功能安装

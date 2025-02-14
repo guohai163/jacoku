@@ -5,7 +5,7 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: ghcr.io/guohai163/jacoco-report
+  repository: ghcr.io/guohai163/jacoku
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -87,13 +87,13 @@ affinity: {}
 # 服务 账号
 serviceAccounts:
   create: true
-  name: "jacoco-report-sa"
+  name: "jacoku-sa"
   annotations: {}
 
 # 基于角色的访问控制(Role-based access control
 rbac:
   create: true
-  name: "jacoco-report-cr"
+  name: "jacoku-cr"
 
 extraEnvs: []
 
@@ -107,12 +107,15 @@ ingress:
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  host: jacoco-chart-example.local
+  host: demo.jacoku.cn
   paths:
     - path: /
       pathType: ImplementationSpecific
       serviceName: "-front"
     - path: /api/
+      pathType: ImplementationSpecific
+      serviceName: ""
+    - path: /report/
       pathType: ImplementationSpecific
       serviceName: ""
   tls: []

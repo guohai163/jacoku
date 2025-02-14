@@ -1,7 +1,7 @@
-site_name: jacoco-report代码覆盖率报告
-site_url: https://guohai163.github.com/jacoco-report
-repo_url: https://github.com/guohai163/jacoco-report
-repo_name: "guohai163/jacoco-report"
+site_name: Java code Coverage within Kubernetes
+site_url: https://guohai163.github.com/jacoku
+repo_url: https://github.com/guohai163/jacoku
+repo_name: "guohai163/jacoku"
 theme:
   name: material
   features:
@@ -20,5 +20,5 @@ nav:
     - 流程介绍: "full-depl/flow-chart.md"
     - 测试对象准备: "full-depl/test-object.md"
     - 进行测试: "full-depl/testing.md"
-    - 生成中间文件: "full-depl/jacoco-report.md"
+    - 生成中间文件: "full-depl/jacoku.md"
   - 二次开发说明: "customization/index.md"

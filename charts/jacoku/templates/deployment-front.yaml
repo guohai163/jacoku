@@ -2,14 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "jacoco-report.fullname" . }}-front
+  name: {{ include "jacoku.fullname" . }}-front
   labels:
-    {{- include "jacoco-report.labels" . | nindent 4 }}
+    {{- include "jacoku.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "jacoco-report.selectorLabels" . | nindent 6 }}
+      {{- include "jacoku.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -17,8 +17,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        jacoco-report: {{ include "jacoco-report.fullname" . }}-front
-        {{- include "jacoco-report.labels" . | nindent 8 }}
+        jacoku: {{ include "jacoku.fullname" . }}-front
+        {{- include "jacoku.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

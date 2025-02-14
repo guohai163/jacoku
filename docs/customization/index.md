@@ -4,7 +4,7 @@
 ├── README.md
 ├── mkdocs.yml
 ├── charts
-│   └── jacoco-report
+│   └── jacoku
 ├── docker
 │   ├── front
 │   └── server

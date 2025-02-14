@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "jacoco-report.fullname" . }}
+  name: {{ include "jacoku.fullname" . }}
   labels:
-    {{- include "jacoco-report.labels" . | nindent 4 }}
+    {{- include "jacoku.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -34,7 +34,7 @@ spec:
             {{- end }}
             backend:
               service:
-                name: {{ include "jacoco-report.fullname" $ }}{{ .serviceName }}
+                name: {{ include "jacoku.fullname" $ }}{{ .serviceName }}
                 port:
                   number: 80
           {{- end }}
