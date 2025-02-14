@@ -160,7 +160,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, repo
     project_name = result[0][1]
     clone_project_local(git_url, project_name, git_commit)
     generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name, report_format)
-    upload_report(project_group, project_name, report_format)
+    upload_report(project_group, project_name,pod_name , report_format)
     pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     clean_report()
 
