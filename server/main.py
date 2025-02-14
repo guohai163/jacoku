@@ -85,7 +85,7 @@ def upload_local_directory_to_minio(local_path, minio_path, minio_client):
         local_file = local_file.replace(os.sep, "/")
         if not os.path.isfile(local_file):
             upload_local_directory_to_minio(
-                local_file, bucket_name, minio_path + "/" + os.path.basename(local_file))
+                local_file, minio_path + "/" + os.path.basename(local_file), minio_client)
         else:
             remote_path = os.path.join(
                 minio_path, local_file[1 + len(local_path):])
