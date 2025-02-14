@@ -12,6 +12,7 @@ from main import get_pod
 
 LOG = log4p.GetLogger('__main__').logger
 
+REPORT_PATH = '/data/report/'
 
 def init_cron_task():
     """
@@ -52,19 +53,44 @@ class MainHandler(tornado.web.RequestHandler):
         self.write(json.dumps(get_pod(False), cls=ListOfListsEncoder))
 
 
+class ReportBrowser(tornado.web.RequestHandler):
+    """
+    遍历本地目录
+    """
+
+    def get(self, path):
+        LOG.info(path)
+        local_path = '{}{}'.format(REPORT_PATH, path)
+        if not os.path.exists(local_path):
+            raise tornado.web.HTTPError(404)
+        if os.path.isdir(local_path):
+            if not self.request.path.endswith('/'):
+                self.redirect(self.request.path + '/')
+                return
+
+        with open(local_path, 'rb') as f:
+            self.write(f.read())
+            self.finish()
+            return
+
+
 async def server_start():
     app = tornado.web.Application([
         (r"/api/list", MainHandler),
+        (r"/report/(.*)", ReportBrowser)
     ])
     app.listen(1219)
     await asyncio.Event().wait()
 
 
 def main():
+    """
+    主方法
+    """
+    env_check()
     init_cron_task()
     asyncio.run(server_start())
 
 
 if __name__ == '__main__':
-    env_check()
     main()
