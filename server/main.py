@@ -144,7 +144,7 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, report_format):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -159,8 +159,8 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path):
     project_group = result[0][0]
     project_name = result[0][1]
     clone_project_local(git_url, project_name, git_commit)
-    generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name)
-    upload_report(project_group, project_name)
+    generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name, report_format)
+    upload_report(project_group, project_name, report_format)
     pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     clean_report()
 
@@ -202,8 +202,9 @@ if __name__ == '__main__':
     print('jacoco-report start ...')
     path_init()
     list_pod = get_pod(True)
+    report_format = get_report_format()
     for pod in list_pod:
-        generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path)
+        generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path, report_format)
     # 多进程中共享文件使用
     with open(check_pickle_file, 'wb') as check_file:
         pickle.dump(pod_last_check, check_file)
