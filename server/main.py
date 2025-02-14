@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import glob
 import io
 import os
 import pickle
@@ -55,14 +56,47 @@ def clone_project_local(git_url, project_name, git_commit):
                         .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name)
         git_commit_dic[project_name] = git_commit
 
+
 def get_report_format():
-    formaat_parm = os.getenv('FORMAT')
-    if formaat_parm is None:
+    """
+    通过环境变量确认文件格式
+    """
+    format_parm = os.getenv('FORMAT')
+    if format_parm is None:
         return 'html'
     else:
-        return formaat_parm
+        return format_parm
 
-def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name):
+
+def upload_local_directory_to_minio(local_path, minio_path):
+    """
+    如果生成报告为html格式，上传目录
+
+    Parameters:
+        local_path - 本地文件路径
+        minio_path - 远程文件路径
+    """
+    assert os.path.isdir(local_path)
+    minio_client = Minio(os.getenv('MINIO_URL'),
+                         access_key=os.getenv('MINIO_ACCESS'),
+                         secret_key=os.getenv('MINIO_SECRET'),
+                         )
+    check_minio(minio_client)
+
+    for local_file in glob.glob(local_path + '/**'):
+        local_file = local_file.replace(os.sep, "/")
+        if not os.path.isfile(local_file):
+            upload_local_directory_to_minio(
+                local_file, bucket_name, minio_path + "/" + os.path.basename(local_file))
+        else:
+            remote_path = os.path.join(
+                minio_path, local_file[1 + len(local_path):])
+            remote_path = remote_path.replace(
+                os.sep, "/")
+            minio_client.fput_object(bucket_name, remote_path, local_file)
+
+
+def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, report_format):
     print("%s\t%s\t%s" % (jacoco_exec, git_url, git_commit))
     call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                     'java -jar {} report /tmp/report.exec --classfiles ./target/classes  --sourcefiles ./src/main/java '
