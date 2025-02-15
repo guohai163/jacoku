@@ -3,6 +3,8 @@ import json
 import sys
 import os
 import time
+from abc import ABC
+
 import log4p
 from crontab import CronTab
 import asyncio
@@ -86,9 +88,20 @@ class ReportBrowser(tornado.web.RequestHandler):
             return
 
 
+class AnalysisPod(tornado.web.RequestHandler):
+    """
+    分析单个POD
+    """
+
+    def post(self):
+        args = json.loads(self.request.body)
+        LOG.debug(args)
+
+
 async def server_start():
     app = tornado.web.Application([
         (r"/api/list", MainHandler),
+        (r"/api/analysis", AnalysisPod),
         (r"/report/(.*)", ReportBrowser)
     ])
     app.listen(1219)
@@ -99,8 +112,8 @@ def main():
     """
     主方法
     """
-    env_check()
-    init_cron_task()
+    # env_check()
+    # init_cron_task()
     asyncio.run(server_start())
 
 

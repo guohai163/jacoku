@@ -46,19 +46,23 @@ def path_init():
     if os.path.exists(local_base_dir):
         shutil.rmtree(local_base_dir)
     os.makedirs(local_base_dir)
+    if os.path.exists('/tmp/report_dump/'):
+        shutil.rmtree('/tmp/report_dump/')
+    os.makedirs('/tmp/report_dump/')
     if not os.path.exists(REPORT_PATH):
         os.makedirs(REPORT_PATH)
 
 
 def clone_project_local(git_url, project_name, git_commit):
     """
-    克隆代码
+    克隆代码,并对项目进行编译。生成字节码
     """
     if not os.path.exists('{}{}'.format(local_base_dir, project_name)):
-        subprocess.call('git clone {}'.format(git_url), shell=True, cwd=local_base_dir)  ##-b develop
+        subprocess.call('git clone {}'.format(git_url), shell=True, cwd=local_base_dir)
         git_commit_dic[project_name] = ''
     if git_commit_dic.get(project_name) != git_commit:
-        subprocess.call('git checkout {}'.format(git_commit), shell=True, cwd=local_base_dir + '/' + project_name)
+        subprocess.call('git pull && git checkout {}'.format(git_commit), shell=True,
+                        cwd=local_base_dir + '/' + project_name)
         subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
                         .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name)
         git_commit_dic[project_name] = git_commit
@@ -86,27 +90,27 @@ def upload_local_directory_to_minio(local_path, minio_path, minio_client):
             minio_client.fput_object(bucket_name, remote_path, local_file)
 
 
-def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, report_format):
+def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, service_name, re_format):
     """
     按指定格式生成报告
     """
     LOG.info("%s\t%s\t%s", jacoco_exec, git_url, git_commit)
     call_command = ''
-    if report_format == 'xml':
+    if re_format == 'xml':
         call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
-                        'java -jar {} report /tmp/report.exec --classfiles ./target/classes '
-                        '--sourcefiles ./src/main/java --xml /tmp/report.xml') \
-            .format(jdk_path[11], jdk_path[11], jacoco_cli)
+                        'java -jar {} report {} --classfiles ./target/classes '
+                        '--sourcefiles ./src/main/java --xml /tmp/{}.xml') \
+            .format(jdk_path[11], jdk_path[11], jacoco_cli, jacoco_exec, service_name)
     else:
         call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
-                        'java -jar {} report /tmp/report.exec --classfiles ./target/classes '
-                        '--sourcefiles ./src/main/java --html /tmp/report_html') \
-            .format(jdk_path[11], jdk_path[11], jacoco_cli)
+                        'java -jar {} report {} --classfiles ./target/classes '
+                        '--sourcefiles ./src/main/java --html {}{}/{}') \
+            .format(jdk_path[11], jdk_path[11], jacoco_cli, jacoco_exec, REPORT_PATH, project_name, service_name)
     print(call_command)
     subprocess.call(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path)
 
 
-def upload_report(project_group, project_name, pod_name, report_format):
+def upload_report(project_group, project_name, pod_name, service_name, re_format):
     """
     上传报告到minio对象存储
     """
@@ -115,16 +119,13 @@ def upload_report(project_group, project_name, pod_name, report_format):
                          secret_key=os.getenv('MINIO_SECRET'),
                          )
     check_minio(minio_client)
-    if report_format == 'xml':
-        destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, pod_name)
-        minio_client.fput_object(bucket_name, destination_file, '/tmp/report.xml')
+    if re_format == 'xml':
+        destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, service_name)
+        minio_client.fput_object(bucket_name, destination_file, '/tmp/{}.xml'.format(service_name))
     else:
-        destination_path = '{}/{}/{}/{}'.format(path_date, project_group, project_name, pod_name)
-        upload_local_directory_to_minio('/tmp/report_html', destination_path, minio_client)
-
-
-def clean_report():
-    subprocess.call('rm -rf /tmp/report.xml /tmp/report.exec', shell=True)
+        destination_path = '{}/{}/{}/{}'.format(path_date, project_group, project_name, service_name)
+        upload_local_directory_to_minio('{}{}/{}'.format(REPORT_PATH, project_name, service_name), destination_path
+                                        , minio_client)
 
 
 def check_minio(minio_client):
@@ -136,25 +137,32 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, report_format, upload_mini_enable):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, report_format, upload_enable):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
+    # dump出分析文件
+    exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
     call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
-                    'java -jar {} dump --address {} --destfile /tmp/report.exec').format(jdk_path[11], jdk_path[11],
-                                                                                         jacoco_cli,
-                                                                                         pod_ip)
+                    'java -jar {} dump --address {} --destfile {}') \
+        .format(jdk_path[11], jdk_path[11], jacoco_cli, pod_ip, exec_file)
     subprocess.call(call_command, shell=True)
+    if not os.path.exists(exec_file):
+        LOG.error('exec file {} gene fail', exec_file)
+        return 'exec gen fail!'
     # 通过正则分解出项目组和项目名
     pattern = re.compile(r'([^/:]+)/([^/.]+)\.git$')
     result = pattern.findall(git_url)
     project_group = result[0][0]
     project_name = result[0][1]
+    # 克隆并构建代码
     clone_project_local(git_url, project_name, git_commit)
-    generate_report('/tmp/{}.exec'.format(pod_ip), git_url, git_commit, src_path, project_name, report_format)
-    upload_report(project_group, project_name, pod_name, report_format)
+    # 生成 报告
+    service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(pod_name)[0][0]
+    generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, report_format)
+    if upload_enable:
+        upload_report(project_group, project_name, pod_name, service_name, report_format)
     pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    clean_report()
 
 
 def get_pod(is_jacoco_enable):
