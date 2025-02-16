@@ -31,7 +31,10 @@ git_commit_dic = {}
 # pod的最后检查时间
 pod_last_check = {}
 
+report_html = {}
+
 check_pickle_file = "last_check.pickle"
+report_link_pickle_file = "report_link.pickle"
 
 jdk_path = {11: "/opt/jdk11",
             17: "/opt/jdk17",
@@ -137,7 +140,7 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, report_format, upload_enable):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -158,11 +161,13 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, repo
     # 克隆并构建代码
     clone_project_local(git_url, project_name, git_commit)
     # 生成 报告
-    service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(pod_name)[0][0]
-    generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, report_format)
+    service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(pod_name)[0]
+    generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
     if upload_enable:
-        upload_report(project_group, project_name, pod_name, service_name, report_format)
+        upload_report(project_group, project_name, pod_name, service_name, re_format)
     pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    if re_format == 'html':
+        report_html[pod_name] = '/report/{}/{}'.format(project_name, service_name)
 
 
 def get_pod(is_jacoco_enable):
@@ -174,20 +179,28 @@ def get_pod(is_jacoco_enable):
     ret = v1.list_pod_for_all_namespaces(watch=False)
     pod_list = []
     pod_last_check_temp = {}
+    report_html_link = {}
     if os.path.exists(check_pickle_file):
         with open(check_pickle_file, 'rb') as check_file_r:
             pod_last_check_temp = pickle.load(check_file_r)
+    if os.path.exists(report_html_link):
+        with open(report_html_link, 'rb') as html_link_r:
+            report_html_temp = pickle.load(html_link_r)
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
                 last_time = None
                 if not pod_last_check_temp.get(i.metadata.name) is None:
                     last_time = pod_last_check_temp[i.metadata.name]
+                html_link = None
+                if not report_html_temp.get(re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]) is None:
+                    html_link = report_html_temp[re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]]
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
                                    i.metadata.annotations.get('jacoco/git-url'),
                                    i.metadata.annotations.get('jacoco/git-commit'),
-                                   i.metadata.annotations.get('jacoco/src-path'))
+                                   i.metadata.annotations.get('jacoco/src-path'),
+                                   html_link)
                 pod_list.append(pod_item)
                 print("%s\t%s\t%s\t" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
             else:
@@ -231,3 +244,6 @@ if __name__ == '__main__':
     # 多进程中共享文件使用
     with open(check_pickle_file, 'wb') as check_file:
         pickle.dump(pod_last_check, check_file)
+
+    with open(report_link_pickle_file, 'wb') as link_file:
+        pickle.dump(report_html, link_file)

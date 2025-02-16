@@ -23,6 +23,7 @@ export default function Home() {
         { field: 'git_url', headerName: 'git', width: 300 },
         { field: 'git_commit', headerName: 'git commit', width: 350 },
         { field: 'last_check_time', headerName: '最后检查时间', width: 150 },
+        { field: 'html_link', headerName: 'HTML报告', width: 200}
         ];
   return (
       <Box sx={{ height: '100%', width: '100%' }}>
