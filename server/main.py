@@ -161,7 +161,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # 克隆并构建代码
     clone_project_local(git_url, project_name, git_commit)
     # 生成 报告
-    service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(pod_name)[0]
+    service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
     generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
     if upload_enable:
         upload_report(project_group, project_name, pod_name, service_name, re_format)
@@ -193,8 +193,8 @@ def get_pod(is_jacoco_enable):
                 if not pod_last_check_temp.get(i.metadata.name) is None:
                     last_time = pod_last_check_temp[i.metadata.name]
                 html_link = None
-                if not report_html_link.get(re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]) is None:
-                    html_link = report_html_link[re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]]
+                if not report_html_link.get(re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(i.metadata.name)[0]) is None:
+                    html_link = report_html_link[re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(i.metadata.name)[0]]
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
                                    i.metadata.annotations.get('jacoco/git-url'),
