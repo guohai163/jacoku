@@ -162,12 +162,15 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     clone_project_local(git_url, project_name, git_commit)
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
-    generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
-    if upload_enable:
-        upload_report(project_group, project_name, pod_name, service_name, re_format)
-    pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    if re_format == 'html':
-        report_html[pod_name] = '/report/{}/{}'.format(project_name, service_name)
+    if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):
+        generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
+        if upload_enable:
+            upload_report(project_group, project_name, pod_name, service_name, re_format)
+        pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        if re_format == 'html':
+            report_html[pod_name] = '/report/{}/{}'.format(project_name, service_name)
+    else:
+        LOG.error('项目{}路径配置错误'.format(pod_name))
 
 
 def get_pod(is_jacoco_enable):
