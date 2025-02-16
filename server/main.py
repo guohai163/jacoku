@@ -183,9 +183,9 @@ def get_pod(is_jacoco_enable):
     if os.path.exists(check_pickle_file):
         with open(check_pickle_file, 'rb') as check_file_r:
             pod_last_check_temp = pickle.load(check_file_r)
-    if os.path.exists(report_html_link):
-        with open(report_html_link, 'rb') as html_link_r:
-            report_html_temp = pickle.load(html_link_r)
+    if os.path.exists(report_link_pickle_file):
+        with open(report_link_pickle_file, 'rb') as html_link_r:
+            report_html_link = pickle.load(html_link_r)
     for i in ret.items:
         if i.metadata.annotations is not None:
             if i.metadata.annotations.get('jacoco/enable') is not None:
@@ -193,8 +193,8 @@ def get_pod(is_jacoco_enable):
                 if not pod_last_check_temp.get(i.metadata.name) is None:
                     last_time = pod_last_check_temp[i.metadata.name]
                 html_link = None
-                if not report_html_temp.get(re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]) is None:
-                    html_link = report_html_temp[re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]]
+                if not report_html_link.get(re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]) is None:
+                    html_link = report_html_link[re.compile(r'(.+)-[\d\w]+-[\d\w]+&').findall(i.metadata.name)[0]]
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
                                    i.metadata.annotations.get('jacoco/git-url'),
