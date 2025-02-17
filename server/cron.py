@@ -2,8 +2,6 @@ import getopt
 import json
 import sys
 import os
-import time
-from abc import ABC
 
 import log4p
 from crontab import CronTab
@@ -97,7 +95,7 @@ class AnalysisPod(tornado.web.RequestHandler):
         args = json.loads(self.request.body)
         result = generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
                                         args['src_path'], 'html', False, True)
-        self.write('{status: "{}"}'.format(result))
+        self.write('{{message: "{}"}}'.format(result))
         return
 
 

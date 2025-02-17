@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import glob
-import io
 import os
 import pickle
 import shutil
@@ -10,7 +9,6 @@ from kubernetes import client, config
 import subprocess
 from minio import Minio
 import time
-import uuid
 import re
 
 from poditem import PodItem
@@ -244,6 +242,7 @@ def get_report_format():
 
 if __name__ == '__main__':
     print('jacoku start ...')
+
     path_init()
     # 获取报告格式
     report_format = get_report_format()
