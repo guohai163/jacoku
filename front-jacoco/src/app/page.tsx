@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useState} from "react";
-import { Space, Table, Tag, Button } from 'antd';
+import { Table, Button } from 'antd';
 import type { TableProps } from 'antd';
 
 interface DataType {
@@ -13,7 +13,7 @@ export default function Home() {
   const [data, setData] = useState();
   useEffect(()=>{
 
-    fetch('http://jacoku.cn/api/list')
+    fetch('/api/list')
         .then(response => response.json())
         .then(data => {
           console.log(data)
@@ -45,7 +45,7 @@ export default function Home() {
             </>
             )
         },
-        { key: 'action', title:'生成报告', render: (_: any, record: DataType)=>(
+        { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
                 {record.enable?<Button type="primary" onClick={() => codeCoverage(record)}>生成报告</Button>:<></>}
             </>
