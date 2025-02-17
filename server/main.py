@@ -168,7 +168,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
             upload_report(project_group, project_name, pod_name, service_name, re_format)
         pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if re_format == 'html':
-            report_html[service_name] = '/report/{}/{}'.format(project_name, service_name)
+            report_html[service_name] = '/report/{}/{}/index.html'.format(project_name, service_name)
     else:
         LOG.error('项目{}路径配置错误'.format(pod_name))
 
