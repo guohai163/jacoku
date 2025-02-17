@@ -97,18 +97,25 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, se
     """
     LOG.info("%s\t%s\t%s", jacoco_exec, git_url, git_commit)
     call_command = ''
+    result_file = ''
     if re_format == 'xml':
         call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                         'java -jar {} report {} --classfiles ./target/classes '
                         '--sourcefiles ./src/main/java --xml /tmp/{}.xml') \
             .format(jdk_path[11], jdk_path[11], jacoco_cli, jacoco_exec, service_name)
+        result_file = '/tmp/{}.xml'.format(service_name)
     else:
         call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                         'java -jar {} report {} --classfiles ./target/classes '
                         '--sourcefiles ./src/main/java --html {}{}/{}') \
             .format(jdk_path[11], jdk_path[11], jacoco_cli, jacoco_exec, REPORT_PATH, project_name, service_name)
+        result_file = '{}{}/{}'.format(REPORT_PATH, project_name, service_name)
     print(call_command)
     subprocess.call(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path)
+    if os.path.exists(result_file):
+        return True
+    else:
+        return False
 
 
 def upload_report(project_group, project_name, pod_name, service_name, re_format):
@@ -163,11 +170,11 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
     if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):
-        generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
-        if upload_enable:
+        generate_result = generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
+        if upload_enable and generate_result:
             upload_report(project_group, project_name, pod_name, service_name, re_format)
         pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        if re_format == 'html':
+        if re_format == 'html' and generate_result:
             report_html[service_name] = '/report/{}/{}/index.html'.format(project_name, service_name)
         if request_web:
             with open(check_pickle_file, 'wb') as check_file:
