@@ -8,7 +8,7 @@ export default function Home() {
   const [data, setData] = useState();
   useEffect(()=>{
 
-    fetch('/api/list')
+    fetch('http://jacoku.cn/api/list')
         .then(response => response.json())
         .then(data => {
           console.log(data)

@@ -140,11 +140,13 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable, request_web):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
     # dump出分析文件
+    if request_web:
+        path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
     call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
                     'java -jar {} dump --address {} --destfile {}') \
@@ -169,6 +171,11 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
         pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if re_format == 'html':
             report_html[service_name] = '/report/{}/{}'.format(project_name, service_name)
+        if request_web:
+            with open(check_pickle_file, 'wb') as check_file:
+                pickle.dump(pod_last_check, check_file)
+            with open(report_link_pickle_file, 'wb') as link_file:
+                pickle.dump(report_html, link_file)
     else:
         LOG.error('项目{}路径配置错误'.format(pod_name))
 
@@ -243,7 +250,7 @@ if __name__ == '__main__':
     list_pod = get_pod(True)
     for pod in list_pod:
         generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path, report_format,
-                               upload_mini_enable)
+                               upload_mini_enable, False)
     # 多进程中共享文件使用
     with open(check_pickle_file, 'wb') as check_file:
         pickle.dump(pod_last_check, check_file)
