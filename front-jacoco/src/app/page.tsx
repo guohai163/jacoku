@@ -1,19 +1,22 @@
 'use client';
 import {useEffect, useState} from "react";
-import { Table, Button } from 'antd';
+import { Table, Button, Switch } from 'antd';
 import type { TableProps } from 'antd';
 
 interface DataType {
     pod_ns: string;
     pod_name: string;
     enable: boolean;
+    git_commit: string;
+    git_url: string;
+    src_path: string;
 }
 
 export default function Home() {
   const [data, setData] = useState();
   useEffect(()=>{
 
-    fetch('/api/list')
+    fetch('//jacoku.cn/api/list')
         .then(response => response.json())
         .then(data => {
           console.log(data)
@@ -35,10 +38,14 @@ export default function Home() {
         { key: 'pod_ns', title: 'pod namespace', dataIndex: 'pod_ns'},
         { key: 'pod_name', title: 'pod name', dataIndex: 'pod_name' },
         { key: 'enable', title: '是否开启jacoco注解', dataIndex: 'enable',
-            filters:[{ text: 'True', value: 'True'}, { text: 'False', value: 'False'}],
-            onFilter: (value, record) => record.enable === value},
-        { key: 'git_url', title: 'git', dataIndex: 'git_url' },
-        { key: 'git_commit', title: 'git commit', dataIndex: 'git_commit' },
+            filters:[{ text: 'True', value: true }, { text: 'False', value: false}],
+            onFilter: (value, record) => record.enable === value,
+            render: (text: boolean) => <>{text?<Switch disabled={true} checkedChildren="开启" unCheckedChildren="关闭" defaultChecked />:<></>}</>},
+        { key: 'src_path', title: '路径', dataIndex: 'src_path' },
+        { key: 'git_commit', title: 'git', dataIndex: 'git_commit',
+            render: (_, record: DataType) =>(
+                <a href={record.git_url.replace(/.git$/g,"")+'/-/tree/'+record.git_commit} target={'_blank'}>{record.git_commit}</a>
+            )},
         { key: 'last_check_time', title: '最后检查时间', dataIndex: 'last_check_time' },
         { key: 'html_link', title: 'HTML报告', dataIndex: 'html_link', render: (text: string) => (
             <>
