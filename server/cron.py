@@ -10,7 +10,7 @@ from crontab import CronTab
 import asyncio
 import tornado
 
-from main import get_pod
+from main import get_pod, generate_jacoco_report
 
 LOG = log4p.GetLogger('__main__').logger
 
@@ -95,7 +95,11 @@ class AnalysisPod(tornado.web.RequestHandler):
 
     def post(self):
         args = json.loads(self.request.body)
-        LOG.debug(args)
+        LOG.debug(args['pod_name'])
+        generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'], args['src_path']
+                               , 'html', False)
+        self.write('{status: "success"}')
+        return
 
 
 async def server_start():
@@ -112,8 +116,8 @@ def main():
     """
     主方法
     """
-    # env_check()
-    # init_cron_task()
+    env_check()
+    init_cron_task()
     asyncio.run(server_start())
 
 
