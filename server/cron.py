@@ -96,7 +96,7 @@ class AnalysisPod(tornado.web.RequestHandler):
     def post(self):
         args = json.loads(self.request.body)
         result = generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
-                                        args['src_path'], 'html', True)
+                                        args['src_path'], 'html', False, True)
         self.write('{status: "{}"}'.format(result))
         return
 
