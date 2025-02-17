@@ -176,8 +176,10 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
                 pickle.dump(pod_last_check, check_file)
             with open(report_link_pickle_file, 'wb') as link_file:
                 pickle.dump(report_html, link_file)
+        return '生成成功'
     else:
         LOG.error('项目{}路径配置错误'.format(pod_name))
+        return '项目{}路径配置错误'.format(pod_name)
 
 
 def get_pod(is_jacoco_enable):
