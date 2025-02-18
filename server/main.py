@@ -11,6 +11,7 @@ from minio import Minio
 import time
 import re
 
+import utils
 from poditem import PodItem
 
 LOG = log4p.GetLogger('__main__').logger
@@ -159,7 +160,8 @@ def dump_jacoco_data(pod_ip, exec_file):
     return result
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable, req_web, wsobj):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable, req_web=False,
+                           ws_obj=None):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -167,8 +169,9 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     if req_web:
         path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
+    ws_obj.write_message(utils.gen_response(0, 'jacoco dump start ...'))
     result = dump_jacoco_data(pod_ip, exec_file)
-    wsobj.write_message('jacoco dump result {} \n -==================-\n {}\n'.format(result.returncode, result.stdout))
+    ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result.returncode > 0:
         LOG.error('exec file {} gene fail', exec_file)
         return result

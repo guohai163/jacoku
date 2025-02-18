@@ -9,6 +9,7 @@ import asyncio
 import tornado.web
 import tornado.websocket
 
+import utils
 from main import get_pod, generate_jacoco_report
 
 LOG = log4p.GetLogger('__main__').logger
@@ -66,8 +67,9 @@ class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
         AnalysisWebSocket.waiters.add(self)
 
     def on_message(self, message):
-        self.write_message(message)
+
         args = json.loads(message)
+        self.write_message(utils.gen_response(0, '接收到请求{},开始分析！！'.format(args['pod_name'])))
         generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
                                args['src_path'], 'html', False, True, self)
         self.close()

@@ -35,6 +35,15 @@ export default function Home() {
           .then(data=> console.log(data))
   }
 
+  const colorLogPrint = (color: string, message: string) =>{
+      const cssMap = new Map();
+      cssMap.set('green','color:#42c731;background-color:#1E1E1E;padding:3px;');
+      cssMap.set('cyan','color:#41c5d1;background-color:#1E1E1E;padding:3px;');
+      cssMap.set('white','color:#ffffff;background-color:#1E1E1E;padding:3px;');
+      cssMap.set('orange','color:#d64a2e;background-color:#1E1E1E;padding:3px;');
+      console.log("%c%s",cssMap.get(color),message)
+  }
+
     const columns: TableProps<DataType>['columns'] = [
         { key: 'pod_ns', title: 'pod namespace', dataIndex: 'pod_ns'},
         { key: 'pod_name', title: 'pod name', dataIndex: 'pod_name' },
@@ -60,13 +69,15 @@ export default function Home() {
                 {record.enable?<Button type={"primary"} onClick={() => {
                     const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
+                        colorLogPrint("green","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
                         ws.send( JSON.stringify(record))
+
                     }
                     ws.onmessage = function (evt){
-                        const css:string = "color:#81D8D0";
-                        console.log("%c%s",css,evt.data)
+                        colorLogPrint(evt.data.returnCode<=0?"white":"orange",evt.data.message)
                     }
                     ws.onclose = function (){
+                        colorLogPrint("cyan","🐠🪸🦞🐡代码分析结束🐡🦞🪸🐠")
                         alert('执行结束')
                     }
                 }}>WS请求报告</Button>:<></>}
@@ -77,6 +88,12 @@ export default function Home() {
   return (
       <div>
           <Table<DataType> dataSource={data} columns={columns} />
+          <Button type={"primary"} onClick={() => {
+              colorLogPrint("green","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
+              colorLogPrint("cyan","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
+              colorLogPrint("white","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
+              colorLogPrint("orange","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
+          }}>WS请求报告</Button>
       </div>
   );
 }
