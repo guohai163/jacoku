@@ -170,7 +170,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     req_web and ws_obj.write_message(utils.gen_response(0, 'jacoco dump start ...'))
     result = dump_jacoco_data(pod_ip, exec_file)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
-    if result.returncode > 0:
+    if result is None or result.returncode > 0:
         LOG.error('exec file {} gene fail', exec_file)
         return result
     # 通过正则分解出项目组和项目名
@@ -182,8 +182,8 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     req_web and ws_obj.write_message(utils.gen_response(0, '准备克隆项目{}，并build项目'.format(project_name)))
     result = clone_project_local(git_url, project_name, git_commit)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
-    if result.returncode > 0:
-        LOG.error('project build {} fail', project_name)
+    if result is None or result.returncode > 0:
+        LOG.error('project build {} fail commit {}', project_name, git_commit)
         return result
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
