@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useState} from "react";
-import { Table, Button, Switch } from 'antd';
+import { Table, Button, Switch, Alert, message } from 'antd';
 import type { TableProps } from 'antd';
 
 
@@ -15,12 +15,16 @@ interface DataType {
 
 export default function Home() {
   const [data, setData] = useState();
-  useEffect(()=>{
+  const [messageApi, contextHolder] = message.useMessage();
+  const [loading, setLoading] = useState(false);
 
-    fetch('/api/list')
+  useEffect(()=>{
+      setLoading(true);
+      fetch('//jacoku.cn/api/list')
         .then(response => response.json())
         .then(data => {
-          setData(data)
+          setData(data);
+          setLoading(false);
         })
         .catch(error => console.error(error))
   },[]);
@@ -58,7 +62,7 @@ export default function Home() {
                 {record.enable?<Button type={"primary"} onClick={() => {
                     const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
-                        colorLogPrint("green","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
+                        colorLogPrint("green","🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠")
                         ws.send( JSON.stringify(record))
 
                     }
@@ -68,7 +72,10 @@ export default function Home() {
                     }
                     ws.onclose = function (){
                         colorLogPrint("cyan","🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄")
-                        alert('执行结束')
+                        messageApi.open({
+                            type: 'success',
+                            content: '分析程序执行结束',
+                        });
                     }
                 }}>生成报告</Button>:<></>}
             </>
@@ -77,7 +84,8 @@ export default function Home() {
         ];
   return (
       <div>
-          <Table<DataType> dataSource={data} columns={columns} />
+          <Alert style={innerWidth=100} message="POD需要增加注解，才可被程序自动发现" type="warning" showIcon closable />
+          <Table<DataType> dataSource={data} columns={columns} loading={loading} rowKey={record=>record.pod_name}/>
       </div>
   );
 }
