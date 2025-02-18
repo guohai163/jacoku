@@ -15,12 +15,12 @@ interface DataType {
 
 export default function Home() {
   const [data, setData] = useState();
-  const [messageApi, contextHolder] = message.useMessage();
+  const [messageApi] = message.useMessage();
   const [loading, setLoading] = useState(false);
 
   useEffect(()=>{
       setLoading(true);
-      fetch('//jacoku.cn/api/list')
+      fetch('/api/list')
         .then(response => response.json())
         .then(data => {
           setData(data);

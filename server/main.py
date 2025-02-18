@@ -115,7 +115,7 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, se
                         '--sourcefiles ./src/main/java --html {}{}/{}') \
             .format(jdk_path[11], jdk_path[11], jacoco_cli, jacoco_exec, REPORT_PATH, project_name, service_name)
         result_file = '{}{}/{}'.format(REPORT_PATH, project_name, service_name)
-    print(call_command)
+    LOG.debug(call_command)
     result = subprocess.run(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
