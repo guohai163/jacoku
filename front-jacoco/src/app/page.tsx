@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import { Table, Button, Switch } from 'antd';
 import type { TableProps } from 'antd';
 
+
 interface DataType {
     pod_ns: string;
     pod_name: string;
@@ -56,6 +57,19 @@ export default function Home() {
         { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
                 {record.enable?<Button type="primary" onClick={() => codeCoverage(record)}>生成报告</Button>:<></>}
+                {record.enable?<Button type={"primary"} onClick={() => {
+                    let wsUrl:string = window.location.protocol === "http"?"ws":"wss"+document.location.host;
+                    let ws = new WebSocket(wsUrl+"/api/ws")
+                    ws.onopen = function (){
+                        ws.send( JSON.stringify(record))
+                    }
+                    ws.onmessage = function (evt){
+                        console.log(evt.data)
+                    }
+                    ws.onclose = function (){
+                        alert('执行结束')
+                    }
+                }}>WS请求报告</Button>:<></>}
             </>
 
             )}

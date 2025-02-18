@@ -6,7 +6,8 @@ import os
 import log4p
 from crontab import CronTab
 import asyncio
-import tornado
+import tornado.web
+import tornado.websocket
 
 from main import get_pod, generate_jacoco_report
 
@@ -54,6 +55,28 @@ class ListOfListsEncoder(json.JSONEncoder):
         return obj.toJSON()
 
 
+class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
+    waiters = set()
+
+    def check_origin(self, origin):
+        return True
+
+    def open(self):
+        LOG.info('WS opened')
+        AnalysisWebSocket.waiters.add(self)
+
+    def on_message(self, message):
+        self.write_message(message)
+        args = json.loads(self.request.body)
+        generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
+                               args['src_path'], 'html', False, True, self)
+        self.close()
+
+    def on_close(self):
+        LOG.info('ws closed')
+        AnalysisWebSocket.waiters.remove(self)
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(json.dumps(get_pod(False), cls=ListOfListsEncoder))
@@ -61,7 +84,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class ReportBrowser(tornado.web.RequestHandler):
     """
-    遍历本地目录
+    返回报告的静态文件
     """
 
     def get(self, path):
@@ -101,9 +124,10 @@ class AnalysisPod(tornado.web.RequestHandler):
 
 async def server_start():
     app = tornado.web.Application([
+        (r"/api/ws", AnalysisWebSocket),
         (r"/api/list", MainHandler),
         (r"/api/analysis", AnalysisPod),
-        (r"/report/(.*)", ReportBrowser)
+        (r"/report/(.*)", ReportBrowser),
     ])
     app.listen(1219)
     await asyncio.Event().wait()
@@ -113,8 +137,8 @@ def main():
     """
     主方法
     """
-    env_check()
-    init_cron_task()
+    # env_check()
+    # init_cron_task()
     asyncio.run(server_start())
 
 

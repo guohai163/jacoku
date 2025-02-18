@@ -15,9 +15,12 @@ from poditem import PodItem
 
 LOG = log4p.GetLogger('__main__').logger
 
-bucket_name = "jacoco-report"
+bucket_name = 'jacoco-report'
 local_base_dir = '/tmp/code_repo/'
-REPORT_PATH = '/data/report/'
+DATA_PATH = '/data'
+REPORT_PATH = DATA_PATH+'/report/'
+check_pickle_file = DATA_PATH+'/last_check.pickle'
+report_link_pickle_file = DATA_PATH+'/report_link.pickle'
 
 path_date = time.strftime("%Y-%m-%d", time.localtime())
 maven_path = "/opt/maven/bin"
@@ -31,8 +34,7 @@ pod_last_check = {}
 
 report_html = {}
 
-check_pickle_file = "last_check.pickle"
-report_link_pickle_file = "report_link.pickle"
+
 
 jdk_path = {11: "/opt/jdk11",
             17: "/opt/jdk17",
@@ -145,21 +147,30 @@ def check_minio(minio_client):
         print("Bucket", bucket_name, "already exists")
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable, request_web):
+def dump_jacoco_data(pod_ip, exec_file):
+    """
+    dump   数据
+    """
+    call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
+                    'java -jar {} dump --address {} --destfile {}') \
+        .format(jdk_path[11], jdk_path[11], jacoco_cli, pod_ip, exec_file)
+    result = subprocess.run(call_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return result
+
+
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable, req_web, wsobj):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
     # dump出分析文件
-    if request_web:
+    if req_web:
         path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
-    call_command = ('export PATH=$PATH:{}/bin && export JAVA_HOME={} && '
-                    'java -jar {} dump --address {} --destfile {}') \
-        .format(jdk_path[11], jdk_path[11], jacoco_cli, pod_ip, exec_file)
-    subprocess.call(call_command, shell=True)
-    if not os.path.exists(exec_file):
+    result = dump_jacoco_data(pod_ip, exec_file)
+    wsobj.write_message('jacoco dump result {} \n ============= {}'.format(result.returncode, result.stdout))
+    if result.returncode > 0:
         LOG.error('exec file {} gene fail', exec_file)
-        return 'exec gen fail!'
+        return result
     # 通过正则分解出项目组和项目名
     pattern = re.compile(r'([^/:]+)/([^/.]+)\.git$')
     result = pattern.findall(git_url)
@@ -170,13 +181,14 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
     if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):
-        generate_result = generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name, re_format)
+        generate_result = generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name,
+                                          re_format)
         if upload_enable and generate_result:
             upload_report(project_group, project_name, pod_name, service_name, re_format)
         pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if re_format == 'html' and generate_result:
             report_html[service_name] = '/report/{}/{}/index.html'.format(project_name, service_name)
-        if request_web:
+        if req_web:
             with open(check_pickle_file, 'wb') as check_file:
                 pickle.dump(pod_last_check, check_file)
             with open(report_link_pickle_file, 'wb') as link_file:
