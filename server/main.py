@@ -16,7 +16,6 @@ from poditem import PodItem
 
 LOG = log4p.GetLogger('__main__').logger
 
-bucket_name = 'jacoco-report'
 local_base_dir = '/tmp/code_repo/'
 DATA_PATH = '/data'
 REPORT_PATH = DATA_PATH + '/report/'
@@ -62,6 +61,8 @@ def clone_project_local(git_url, project_name, git_commit):
     if not os.path.exists('{}{}'.format(local_base_dir, project_name)):
         subprocess.call('git clone {}'.format(git_url), shell=True, cwd=local_base_dir)
         git_commit_dic[project_name] = ''
+
+    # 如果本次和上次commit值想同，不再重新生成字节码文件
     if git_commit_dic.get(project_name) != git_commit:
         subprocess.call('git pull && git checkout {}'.format(git_commit), shell=True,
                         cwd=local_base_dir + '/' + project_name)
@@ -92,7 +93,7 @@ def upload_local_directory_to_minio(local_path, minio_path, minio_client):
                 minio_path, local_file[1 + len(local_path):])
             remote_path = remote_path.replace(
                 os.sep, "/")
-            minio_client.fput_object(bucket_name, remote_path, local_file)
+            minio_client.fput_object(os.getenv('MINIO_BUCKET'), remote_path, local_file)
 
 
 def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, service_name, re_format):
@@ -121,7 +122,7 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, se
     return result
 
 
-def upload_report(project_group, project_name, pod_name, service_name, re_format):
+def upload_report(project_group, project_name, service_name, re_format):
     """
     上传报告到minio对象存储
     """
@@ -132,7 +133,7 @@ def upload_report(project_group, project_name, pod_name, service_name, re_format
     check_minio(minio_client)
     if re_format == 'xml':
         destination_file = '{}/{}/{}/{}.xml'.format(path_date, project_group, project_name, service_name)
-        minio_client.fput_object(bucket_name, destination_file, '/tmp/{}.xml'.format(service_name))
+        minio_client.fput_object(os.getenv('MINIO_BUCKET'), destination_file, '/tmp/{}.xml'.format(service_name))
     else:
         destination_path = '{}/{}/{}/{}'.format(path_date, project_group, project_name, service_name)
         upload_local_directory_to_minio('{}{}/{}'.format(REPORT_PATH, project_name, service_name), destination_path
@@ -140,12 +141,16 @@ def upload_report(project_group, project_name, pod_name, service_name, re_format
 
 
 def check_minio(minio_client):
+    """
+    检查对象存储桶是否存在
+    """
+    bucket_name = os.getenv('MINIO_BUCKET')
     found = minio_client.bucket_exists(bucket_name)
     if not found:
         minio_client.make_bucket(bucket_name)
-        print("Created bucket", bucket_name)
+        LOG.info('Created bucket {}'.format(bucket_name))
     else:
-        print("Bucket", bucket_name, "already exists")
+        LOG.info('Bucket {} already exists'.format(bucket_name))
 
 
 def dump_jacoco_data(pod_ip, exec_file):
@@ -159,8 +164,8 @@ def dump_jacoco_data(pod_ip, exec_file):
     return result
 
 
-def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format, upload_enable, req_web=False,
-                           ws_obj=None):
+def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format='xml', upload_enable=False,
+                           req_web=False, ws_obj=None):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -192,19 +197,19 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
                                           re_format)
         req_web and ws_obj.write_message(utils.subprocess_result_2_response(generate_result))
         if upload_enable and generate_result.returncode <= 0:
-            upload_report(project_group, project_name, pod_name, service_name, re_format)
+            upload_report(project_group, project_name, service_name, re_format)
         pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if re_format == 'html' and generate_result:
             report_html[service_name] = '/report/{}/{}/index.html'.format(project_name, service_name)
         if req_web:
-            with open(check_pickle_file, 'wb') as check_file:
-                pickle.dump(pod_last_check, check_file)
-            with open(report_link_pickle_file, 'wb') as link_file:
-                pickle.dump(report_html, link_file)
+            with open(check_pickle_file, 'wb') as check_time_file:
+                pickle.dump(pod_last_check, check_time_file)
+            with open(report_link_pickle_file, 'wb') as re_link_file:
+                pickle.dump(report_html, re_link_file)
         req_web and ws_obj.write_message(utils.gen_response(0, '🎉🎉💯项目{}分析成功🌷🎉🎉'.format(service_name)))
         return '生成成功'
     else:
-        req_web and ws_obj.write_message(utils.gen_response(1,'项目{}路径配置错误'.format(pod_name)))
+        req_web and ws_obj.write_message(utils.gen_response(1, '项目{}路径配置错误'.format(pod_name)))
         LOG.error('项目{}路径配置错误'.format(pod_name))
         return '项目{}路径配置错误'.format(pod_name)
 
@@ -241,7 +246,7 @@ def get_pod(is_jacoco_enable):
                                    i.metadata.annotations.get('jacoco/src-path'),
                                    html_link)
                 pod_list.append(pod_item)
-                print("%s\t%s\t%s\t" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+                LOG.info('{}\t{}\t{}'.format(i.status.pod_ip, i.metadata.namespace, i.metadata.name))
             else:
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, None,
                                    False, '', '', '', '')

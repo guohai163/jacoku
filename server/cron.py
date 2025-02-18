@@ -67,7 +67,6 @@ class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
         AnalysisWebSocket.waiters.add(self)
 
     def on_message(self, message):
-
         args = json.loads(message)
         self.write_message(utils.gen_response(0, '接收到请求{},开始分析！！'.format(args['pod_name'])))
         generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
@@ -79,11 +78,13 @@ class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
         AnalysisWebSocket.waiters.remove(self)
 
 
+# pylint: disable=W0223
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(json.dumps(get_pod(False), cls=ListOfListsEncoder))
 
 
+# pylint: disable=W0223
 class ReportBrowser(tornado.web.RequestHandler):
     """
     返回报告的静态文件
