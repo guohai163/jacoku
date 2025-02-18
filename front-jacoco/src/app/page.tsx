@@ -31,7 +31,9 @@ export default function Home() {
       cssMap.set('cyan','color:#41c5d1;background-color:#1E1E1E;padding:3px;');
       cssMap.set('white','color:#ffffff;background-color:#1E1E1E;padding:3px;');
       cssMap.set('orange','color:#d64a2e;background-color:#1E1E1E;padding:3px;');
-      console.log("%c%s",cssMap.get(color),message)
+      message.split("\n").forEach((val) => {
+          console.log("%c%s",cssMap.get(color),val)
+      })
   }
 
     const columns: TableProps<DataType>['columns'] = [
