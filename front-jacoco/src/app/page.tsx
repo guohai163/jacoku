@@ -65,7 +65,6 @@ export default function Home() {
         },
         { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
-                {record.enable?<Button type="primary" onClick={() => codeCoverage(record)}>生成报告</Button>:<></>}
                 {record.enable?<Button type={"primary"} onClick={() => {
                     const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
@@ -80,7 +79,7 @@ export default function Home() {
                         colorLogPrint("cyan","🐠🪸🦞🐡代码分析结束🐡🦞🪸🐠")
                         alert('执行结束')
                     }
-                }}>WS请求报告</Button>:<></>}
+                }}>生成报告</Button>:<></>}
             </>
 
             )}
@@ -88,12 +87,6 @@ export default function Home() {
   return (
       <div>
           <Table<DataType> dataSource={data} columns={columns} />
-          <Button type={"primary"} onClick={() => {
-              colorLogPrint("green","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
-              colorLogPrint("cyan","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
-              colorLogPrint("white","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
-              colorLogPrint("orange","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
-          }}>WS请求报告</Button>
       </div>
   );
 }
