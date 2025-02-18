@@ -17,7 +17,7 @@ export default function Home() {
   const [data, setData] = useState();
   useEffect(()=>{
 
-    fetch('/api/list')
+    fetch('//jacoku.cn/api/list')
         .then(response => response.json())
         .then(data => {
           setData(data)
@@ -31,7 +31,9 @@ export default function Home() {
       cssMap.set('cyan','color:#41c5d1;background-color:#1E1E1E;padding:3px;');
       cssMap.set('white','color:#ffffff;background-color:#1E1E1E;padding:3px;');
       cssMap.set('orange','color:#d64a2e;background-color:#1E1E1E;padding:3px;');
+
       message.split("\n").forEach((val) => {
+
           console.log("%c%s",cssMap.get(color),val)
       })
   }
@@ -58,13 +60,14 @@ export default function Home() {
         { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
                 {record.enable?<Button type={"primary"} onClick={() => {
-                    const ws:WebSocket = new WebSocket("/api/ws")
+                    const ws:WebSocket = new WebSocket("//jacoku.cn/api/ws")
                     ws.onopen = function (){
                         colorLogPrint("green","🐠🪸🦞🐡准备开始分析代码🐡🦞🪸🐠")
                         ws.send( JSON.stringify(record))
 
                     }
                     ws.onmessage = function (evt){
+                        debugger;
                         const wsMessage = JSON.parse(evt.data)
                         colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.message)
                     }
