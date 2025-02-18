@@ -120,7 +120,7 @@ class AnalysisPod(tornado.web.RequestHandler):
         args = json.loads(self.request.body)
         result = generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
                                         args['src_path'], 'html', False, True)
-        self.write('{{message: "{}"}}'.format(result))
+
         return
 
 
@@ -139,8 +139,8 @@ def main():
     """
     主方法
     """
-    # env_check()
-    # init_cron_task()
+    env_check()
+    init_cron_task()
     asyncio.run(server_start())
 
 

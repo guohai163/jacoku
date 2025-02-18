@@ -115,11 +115,10 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, se
             .format(jdk_path[11], jdk_path[11], jacoco_cli, jacoco_exec, REPORT_PATH, project_name, service_name)
         result_file = '{}{}/{}'.format(REPORT_PATH, project_name, service_name)
     print(call_command)
-    subprocess.call(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path)
-    if os.path.exists(result_file):
-        return True
-    else:
-        return False
+    result = subprocess.run(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            )
+    return result
 
 
 def upload_report(project_group, project_name, pod_name, service_name, re_format):
@@ -166,12 +165,11 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
     # dump出分析文件
-    if req_web:
-        path_init()
+    req_web and path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
-    ws_obj.write_message(utils.gen_response(0, 'jacoco dump start ...'))
+    req_web and ws_obj.write_message(utils.gen_response(0, 'jacoco dump start ...'))
     result = dump_jacoco_data(pod_ip, exec_file)
-    ws_obj.write_message(utils.subprocess_result_2_response(result))
+    req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result.returncode > 0:
         LOG.error('exec file {} gene fail', exec_file)
         return result
@@ -181,13 +179,19 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     project_group = result[0][0]
     project_name = result[0][1]
     # 克隆并构建代码
+    req_web and ws_obj.write_message(utils.gen_response(0, '准备克隆项目{}，并build项目'.format(project_name)))
     result = clone_project_local(git_url, project_name, git_commit)
+    req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
+    if result.returncode > 0:
+        LOG.error('project build {} fail', project_name)
+        return result
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
     if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):
         generate_result = generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name,
                                           re_format)
-        if upload_enable and generate_result:
+        req_web and ws_obj.write_message(utils.subprocess_result_2_response(generate_result))
+        if upload_enable and generate_result.returncode <= 0:
             upload_report(project_group, project_name, pod_name, service_name, re_format)
         pod_last_check[pod_name] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if re_format == 'html' and generate_result:
@@ -197,8 +201,10 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
                 pickle.dump(pod_last_check, check_file)
             with open(report_link_pickle_file, 'wb') as link_file:
                 pickle.dump(report_html, link_file)
+        req_web and ws_obj.write_message(utils.gen_response(0, '🎉🎉💯项目{}分析成功🌷🎉🎉'.format(service_name)))
         return '生成成功'
     else:
+        req_web and ws_obj.write_message(utils.gen_response(1,'项目{}路径配置错误'.format(pod_name)))
         LOG.error('项目{}路径配置错误'.format(pod_name))
         return '项目{}路径配置错误'.format(pod_name)
 
