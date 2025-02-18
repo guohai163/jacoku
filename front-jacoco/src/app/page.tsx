@@ -84,7 +84,7 @@ export default function Home() {
         ];
   return (
       <div>
-          <Alert style={innerWidth=100} message="POD需要增加注解，才可被程序自动发现" type="warning" showIcon closable />
+          <Alert message="POD需要增加注解，才可被程序自动发现" type="warning" showIcon closable />
           <Table<DataType> dataSource={data} columns={columns} loading={loading} rowKey={record=>record.pod_name}/>
       </div>
   );
