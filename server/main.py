@@ -54,7 +54,7 @@ def path_init():
         os.makedirs(REPORT_PATH)
 
 
-def clone_project_local(git_url, project_name, git_commit):
+def clone_project_local(git_url, project_name, git_commit, src_path=''):
     """
     克隆代码,并对项目进行编译。生成字节码
     """
@@ -68,8 +68,14 @@ def clone_project_local(git_url, project_name, git_commit):
                         cwd=local_base_dir + '/' + project_name)
         result = subprocess.run(
             'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-            .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name,
+                .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode == 1:
+            result = subprocess.run(
+                'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
+                .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return result
         git_commit_dic[project_name] = git_commit
         return result
 
@@ -176,7 +182,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     result = dump_jacoco_data(pod_ip, exec_file)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result is None or result.returncode > 0:
-        LOG.error('exec file {} gene fail'.format(exec_file) )
+        LOG.error('exec file {} gene fail'.format(exec_file))
         return result
     # 通过正则分解出项目组和项目名
     pattern = re.compile(r'([^/:]+)/([^/.]+)\.git$')
