@@ -18,9 +18,9 @@ LOG = log4p.GetLogger('__main__').logger
 bucket_name = 'jacoco-report'
 local_base_dir = '/tmp/code_repo/'
 DATA_PATH = '/data'
-REPORT_PATH = DATA_PATH+'/report/'
-check_pickle_file = DATA_PATH+'/last_check.pickle'
-report_link_pickle_file = DATA_PATH+'/report_link.pickle'
+REPORT_PATH = DATA_PATH + '/report/'
+check_pickle_file = DATA_PATH + '/last_check.pickle'
+report_link_pickle_file = DATA_PATH + '/report_link.pickle'
 
 path_date = time.strftime("%Y-%m-%d", time.localtime())
 maven_path = "/opt/maven/bin"
@@ -33,8 +33,6 @@ git_commit_dic = {}
 pod_last_check = {}
 
 report_html = {}
-
-
 
 jdk_path = {11: "/opt/jdk11",
             17: "/opt/jdk17",
@@ -66,9 +64,12 @@ def clone_project_local(git_url, project_name, git_commit):
     if git_commit_dic.get(project_name) != git_commit:
         subprocess.call('git pull && git checkout {}'.format(git_commit), shell=True,
                         cwd=local_base_dir + '/' + project_name)
-        subprocess.call('export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-                        .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name)
+        result = subprocess.run(
+            'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
+            .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         git_commit_dic[project_name] = git_commit
+        return result
 
 
 def upload_local_directory_to_minio(local_path, minio_path, minio_client):
@@ -167,7 +168,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
         path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
     result = dump_jacoco_data(pod_ip, exec_file)
-    wsobj.write_message('jacoco dump result {} \n ============= {}'.format(result.returncode, result.stdout))
+    wsobj.write_message('jacoco dump result {} \n -==================-\n {}\n'.format(result.returncode, result.stdout))
     if result.returncode > 0:
         LOG.error('exec file {} gene fail', exec_file)
         return result
@@ -177,7 +178,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     project_group = result[0][0]
     project_name = result[0][1]
     # 克隆并构建代码
-    clone_project_local(git_url, project_name, git_commit)
+    result = clone_project_local(git_url, project_name, git_commit)
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
     if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):

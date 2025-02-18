@@ -2,7 +2,6 @@
 import {useEffect, useState} from "react";
 import { Table, Button, Switch } from 'antd';
 import type { TableProps } from 'antd';
-import {WebSocket} from "undici-types";
 
 
 interface DataType {
@@ -59,13 +58,13 @@ export default function Home() {
             <>
                 {record.enable?<Button type="primary" onClick={() => codeCoverage(record)}>生成报告</Button>:<></>}
                 {record.enable?<Button type={"primary"} onClick={() => {
-                    const wsUrl:string = window.location.protocol === "http"?"ws":"wss"+document.location.host;
-                    const ws:WebSocket = new WebSocket(wsUrl+"/api/ws")
+                    const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
                         ws.send( JSON.stringify(record))
                     }
                     ws.onmessage = function (evt){
-                        console.log(evt.data)
+                        const css:string = "color:#81D8D0";
+                        console.log("%c%s",css,evt.data)
                     }
                     ws.onclose = function (){
                         alert('执行结束')
