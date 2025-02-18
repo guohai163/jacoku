@@ -20,7 +20,6 @@ export default function Home() {
     fetch('/api/list')
         .then(response => response.json())
         .then(data => {
-          console.log(data)
           setData(data)
         })
         .catch(error => console.error(error))
@@ -64,7 +63,8 @@ export default function Home() {
 
                     }
                     ws.onmessage = function (evt){
-                        colorLogPrint(evt.data.returnCode<=0?"white":"orange",evt.data.message)
+                        const wsMessage = JSON.parse(evt.data)
+                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.message)
                     }
                     ws.onclose = function (){
                         colorLogPrint("cyan","🐠🪸🦞🐡代码分析结束🐡🦞🪸🐠")
