@@ -25,15 +25,6 @@ export default function Home() {
         })
         .catch(error => console.error(error))
   },[]);
-  const codeCoverage = async (podParam:DataType) =>{
-      console.log('function codeCoverage'+podParam.pod_ns)
-      await fetch('/api/analysis', {
-          body: JSON.stringify(podParam),
-          method: "POST"
-      })
-          .then(response => response.json())
-          .then(data=> console.log(data))
-  }
 
   const colorLogPrint = (color: string, message: string) =>{
       const cssMap = new Map();
