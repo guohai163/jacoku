@@ -4,13 +4,13 @@ from enum import Enum
 
 
 class CodeProcess(str, Enum):
-    START = 0
-    DUMP_JACOCO = 1
-    CLONE_CODE = 2
-    BUILD_CODE = 3
-    GENERATE_REPORT = 4
-    OVER = 5
-    ERROR = 6
+    START = '[START]'
+    DUMP_JACOCO = '[DUMP JACOCO]'
+    CLONE_CODE = '[CLONE CODE]'
+    BUILD_CODE = '[BUILD PROJECT]'
+    GENERATE_REPORT = '[GENERATE REPORT]'
+    OVER = '[OVER]'
+    ERROR = '[ERROR]'
 
 
 def subprocess_result_2_response(sub_result):
