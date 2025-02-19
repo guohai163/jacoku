@@ -3,7 +3,7 @@ import json
 from enum import Enum
 
 
-class CodeProcess(Enum):
+class CodeProcess(str, Enum):
     START = 0
     DUMP_JACOCO = 1
     CLONE_CODE = 2
