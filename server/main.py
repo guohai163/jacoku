@@ -54,7 +54,7 @@ def path_init():
         os.makedirs(REPORT_PATH)
 
 
-def clone_project_local(git_url, project_name, git_commit, src_path=''):
+def clone_project_local(git_url, project_name, git_commit):
     """
     克隆代码,并对项目进行编译。生成字节码
     """
@@ -64,20 +64,22 @@ def clone_project_local(git_url, project_name, git_commit, src_path=''):
 
     # 如果本次和上次commit值想同，不再重新生成字节码文件
     if git_commit_dic.get(project_name) != git_commit:
-        subprocess.call('git pull && git checkout {}'.format(git_commit), shell=True,
-                        cwd=local_base_dir + '/' + project_name)
-        result = subprocess.run(
-            'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-                .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if result.returncode == 1:
-            result = subprocess.run(
-                'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-                .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            return result
-        git_commit_dic[project_name] = git_commit
+        result = subprocess.run('git pull && git checkout {}'.format(git_commit), shell=True,
+                                cwd=local_base_dir + '/' + project_name,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return result
+
+
+def build_java_project(project_name, git_commit, pom_path=""):
+    result = subprocess.run(
+        'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
+        .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name + '/' + pom_path,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # 如果pom_path 没传，认为构建了整个项目。下次同commit可以不进行二次构建
+    if pom_path == "":
+        git_commit_dic[project_name] = git_commit
+    return result
+
 
 
 def upload_local_directory_to_minio(local_path, minio_path, minio_client):
@@ -178,7 +180,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # dump出分析文件
     req_web and path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)
-    req_web and ws_obj.write_message(utils.gen_response(0, 'jacoco dump start ...'))
+    req_web and ws_obj.write_message(utils.gen_response(0, 'jacoco dump start ...', utils.CodeProcess.DUMP_JACOCO))
     result = dump_jacoco_data(pod_ip, exec_file)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result is None or result.returncode > 0:
@@ -189,9 +191,18 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     result = pattern.findall(git_url)
     project_group = result[0][0]
     project_name = result[0][1]
-    # 克隆并构建代码
-    req_web and ws_obj.write_message(utils.gen_response(0, '准备克隆项目{}，并build项目'.format(project_name)))
+    # 克隆并代码
+    req_web and ws_obj.write_message(utils.gen_response(0, '准备克隆项目{}'.format(project_name),
+                                                        utils.CodeProcess.CLONE_CODE))
     result = clone_project_local(git_url, project_name, git_commit)
+    req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
+    if result is None or result.returncode > 0:
+        LOG.error('project clone {} fail commit {}'.format(project_name, git_commit))
+        return result
+    # build项目
+    req_web and ws_obj.write_message(utils.gen_response(0, '准备构建项目{}'.format(project_name),
+                                                        utils.CodeProcess.BUILD_CODE))
+    result = build_java_project(project_name, git_commit)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result is None or result.returncode > 0:
         LOG.error('project build {} fail commit {}'.format(project_name, git_commit))
@@ -199,6 +210,8 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # 生成 报告
     service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
     if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):
+        req_web and ws_obj.write_message(utils.gen_response(0, '生成报告{}'.format(pod_name),
+                                                            utils.CodeProcess.GENERATE_REPORT))
         generate_result = generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name,
                                           re_format)
         req_web and ws_obj.write_message(utils.subprocess_result_2_response(generate_result))
@@ -212,10 +225,11 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
                 pickle.dump(pod_last_check, check_time_file)
             with open(report_link_pickle_file, 'wb') as re_link_file:
                 pickle.dump(report_html, re_link_file)
-        req_web and ws_obj.write_message(utils.gen_response(0, '🎉🎉💯项目{}分析成功🌷🎉🎉'.format(service_name)))
+        req_web and ws_obj.write_message(utils.gen_response(0, '🎉🎉💯项目{}分析成功🌷🎉🎉'.format(service_name),
+                                                            utils.CodeProcess.OVER))
         return '生成成功'
     else:
-        req_web and ws_obj.write_message(utils.gen_response(1, '项目{}路径配置错误'.format(pod_name)))
+        req_web and ws_obj.write_message(utils.gen_response(1, '项目{}路径配置错误'.format(pod_name), utils.CodeProcess.ERROR))
         LOG.error('项目{}路径配置错误'.format(pod_name))
         return '项目{}路径配置错误'.format(pod_name)
 
