@@ -69,6 +69,7 @@ class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         args = json.loads(message)
         self.write_message(utils.gen_response(0, '接收到请求{},开始分析！！'.format(args['pod_name'])))
+        self.write_message(utils.gen_response(0, '', ""))
         generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
                                args['src_path'], 'html', False, True, self)
         self.close()

@@ -1,8 +1,9 @@
 'use client';
 import '@ant-design/v5-patch-for-react-19';
 import {ReactNode, useEffect, useState} from "react";
-import { Table, Button, Switch, Alert, message, Modal, Timeline } from 'antd';
+import { Table, Button, Switch, Alert, message, Modal, Timeline, Spin } from 'antd';
 import type { TableProps } from 'antd';
+import {LoadingOutlined} from "@ant-design/icons";
 
 
 interface DataType {
@@ -17,10 +18,11 @@ interface DataType {
 interface ITimeLine {
     children: string;
     color: string;
+    dot?: ReactNode;
 }
 
 export default function Home() {
-  const [data, setData] = useState();
+  const [jacokuData, setJacokuData] = useState();
   const [messageApi] = message.useMessage();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,24 +31,26 @@ export default function Home() {
   const [processTime, setProcessTime] = useState<ITimeLine[]>([]);
   const [pendingTime,setPendingTime] = useState<ReactNode>();
   const [lastData, setLastData] = useState<ITimeLine>();
+  const [wsData, setWsData] = useState<{ pending: ReactNode | false, items: ITimeLine[] }>();
+
   useEffect(()=>{
       setLoading(true);
-      fetch('//jacoku.cn/api/list')
+      fetch('/api/list')
         .then(response => response.json())
         .then(data => {
-          setData(data);
+          setJacokuData(data);
           setLoading(false);
         })
         .catch(error => console.error(error))
   },[]);
 
-  const timeAdd = (message: string, icon: string) => {
+  const handleWsData = (message: string, icon: string) => {
 
       if(icon=="green"){
           // 正常开始
           setLastData({children: message, color: icon})
           setPendingTime(message)
-          return
+          return {children: message, color: icon};
       }
       if(icon=="red" ){
           // 上一步出错
@@ -54,7 +58,7 @@ export default function Home() {
           pro.push( {children: (lastData as ITimeLine).children, color: "red"})
           setProcessTime(pro)
           setPendingTime(false)
-          return;
+          return {children: message, color: icon};
       }
       if(icon=="cyan"){
           // 结束了
@@ -107,30 +111,80 @@ export default function Home() {
         { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
                 {record.enable?<Button type={"primary"} onClick={() => {
-                    const ws:WebSocket = new WebSocket("//jacoku.cn/api/ws")
+                    const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
                         colorLogPrint("green","🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠")
 
                         ws.send( JSON.stringify(record))
                         setIsModalOpen(true)
-                        timeAdd("🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠", "green")
+                        setWsData({
+                            pending: false,
+                            items: [{children: '🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠', color: 'green'}],
+                        });
 
                     }
                     ws.onmessage = function (evt){
                         const wsMessage = JSON.parse(evt.data)
-                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.message)
-                        if(wsMessage.process != "") {
-                            timeAdd(wsMessage.process + " " + wsMessage.message, "blue");
-                        }
-                        if(wsMessage.returnCode>0){
-                            timeAdd("","red");
+                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.returnCode+"_"+wsMessage.message)
 
-                        }
+                        // 更新 wsData 状态
+                        setWsData(prevData => {
+                            const updatedItems = prevData?.items ? [...prevData.items] : [];
+
+                            // 更新其他条目的 dot 属性为空
+
+                            if(wsMessage.process!="") {
+                                // 根据返回的数据，处理 timeline 的条目
+                                updatedItems.push({
+                                    dot: <Spin indicator={<LoadingOutlined spin/>}/>,
+                                    children: `${wsMessage.process} ${wsMessage.message}`,
+                                    color: "blue"
+                                });
+                            }else{
+                                if(wsMessage.returnCode>0) {
+                                    updatedItems.forEach((item, index) => {
+                                        if (index == updatedItems.length-1) {
+                                            item.color = "red";  // 出错，最后一条标红
+                                            item.dot = undefined;  // 删除除最后一项外其他条目的 dot 属性
+                                        }
+                                    });
+                                }else {
+                                    updatedItems.forEach((item, index) => {
+                                        if (index < updatedItems.length ) {
+                                            item.dot = undefined;  // 删除除最后一项外其他条目的 dot 属性
+                                        }
+                                    });
+                                }
+                            }
+
+
+
+                            return {
+                                pending: wsMessage.returnCode <= 0 ? `${wsMessage.process} ${wsMessage.message}` : false,
+                                items: updatedItems
+                            };
+                        });
+
 
                     }
                     ws.onclose = function (){
                         colorLogPrint("cyan","🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄")
-                        timeAdd("🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄", "cyan")
+                        setWsData(prevData => {
+                            const updatedItems = prevData?.items ? [...prevData.items] : [];
+
+                            updatedItems.forEach((item) => {
+                                delete item.dot;
+                            });
+                            // 根据返回的数据，处理 timeline 的条目
+                            updatedItems.push({
+                                children: `🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄`,
+                                color: 'cyan',
+                            });
+                            return {
+                                pending: false,
+                                items: updatedItems
+                            };
+                        });
                         setModalCloseButton(true);
                     }
                 }}>生成报告</Button>:<></>}
@@ -141,12 +195,11 @@ export default function Home() {
   return (
       <div>
           <Alert message="POD需要增加注解，才可被程序自动发现" type="warning" showIcon closable />
-          <Table<DataType> dataSource={data} columns={columns} loading={loading} rowKey={record=>record.pod_name}/>
+          <Table<DataType> dataSource={jacokuData} columns={columns} loading={loading} rowKey={record=>record.pod_name}/>
           <Modal title={"处理过程"} open={isModalOpen} closable={modalCloseButton} footer={null}
-            onClose={()=>setIsModalOpen(false)}>
+                 onCancel={()=>setIsModalOpen(false)}>
               <Timeline
-                  pending={pendingTime}
-                  items={processTime}
+                  items={wsData?.items ?? []}
 
               ></Timeline>
           </Modal>
