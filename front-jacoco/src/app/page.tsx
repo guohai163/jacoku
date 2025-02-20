@@ -1,7 +1,7 @@
 'use client';
 import '@ant-design/v5-patch-for-react-19';
 import {ReactNode, useEffect, useState} from "react";
-import { Table, Button, Switch, Alert, message, Modal, Timeline, Spin } from 'antd';
+import { Table, Button, Switch, Alert, Modal, Timeline, Spin } from 'antd';
 import type { TableProps } from 'antd';
 import {LoadingOutlined} from "@ant-design/icons";
 
@@ -23,14 +23,10 @@ interface ITimeLine {
 
 export default function Home() {
   const [jacokuData, setJacokuData] = useState();
-  const [messageApi] = message.useMessage();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // 关闭按钮是否显示
   const [modalCloseButton, setModalCloseButton] = useState(false);
-  const [processTime, setProcessTime] = useState<ITimeLine[]>([]);
-  const [pendingTime,setPendingTime] = useState<ReactNode>();
-  const [lastData, setLastData] = useState<ITimeLine>();
   const [wsData, setWsData] = useState<{ pending: ReactNode | false, items: ITimeLine[] }>();
 
   useEffect(()=>{
@@ -44,41 +40,6 @@ export default function Home() {
         .catch(error => console.error(error))
   },[]);
 
-  const handleWsData = (message: string, icon: string) => {
-
-      if(icon=="green"){
-          // 正常开始
-          setLastData({children: message, color: icon})
-          setPendingTime(message)
-          return {children: message, color: icon};
-      }
-      if(icon=="red" ){
-          // 上一步出错
-          const pro = processTime;
-          pro.push( {children: (lastData as ITimeLine).children, color: "red"})
-          setProcessTime(pro)
-          setPendingTime(false)
-          return {children: message, color: icon};
-      }
-      if(icon=="cyan"){
-          // 结束了
-          const pro = processTime;
-          pro.push(lastData as ITimeLine)
-          pro.push( {children: message, color: icon})
-          setProcessTime(pro)
-          setPendingTime(false)
-          return;
-      }
-      // 正常过程中
-
-      const pro = processTime;
-      pro.push(lastData as ITimeLine)
-      setProcessTime(pro)
-      setLastData({children: message, color: icon})
-      setPendingTime(message);
-
-
-  }
 
   const colorLogPrint = (color: string, message: string) =>{
       const cssMap = new Map();
