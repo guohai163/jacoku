@@ -70,13 +70,14 @@ def clone_project_local(git_url, project_name, git_commit):
         return result
 
 
-def build_java_project(project_name, git_commit, pom_path=""):
+def build_java_project(project_name, git_commit, build_path=""):
     result = subprocess.run(
         'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-            .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name + '/' + pom_path,
+            .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name + '/' + build_path,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    LOG.info('build_path:{}'.format(build_path))
     # 如果pom_path 没传，认为构建了整个项目。下次同commit可以不进行二次构建
-    if pom_path == "":
+    if build_path == "":
         git_commit_dic[project_name] = git_commit
     return result
 
