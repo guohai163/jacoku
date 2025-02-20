@@ -1,7 +1,7 @@
 'use client';
 import '@ant-design/v5-patch-for-react-19';
 import {ReactNode, useEffect, useState} from "react";
-import { Table, Button, Switch, Alert, Modal, Timeline, Spin } from 'antd';
+import { Table, Button, Switch, Alert, Modal, Timeline, Spin, Input } from 'antd';
 import type { TableProps } from 'antd';
 import {CheckCircleTwoTone, LoadingOutlined, WarningTwoTone} from "@ant-design/icons";
 
@@ -13,6 +13,7 @@ interface DataType {
     git_commit: string;
     git_url: string;
     src_path: string;
+    build_path: string;
 }
 
 interface ITimeLine {
@@ -28,6 +29,7 @@ export default function Home() {
   // 关闭按钮是否显示
   const [modalCloseButton, setModalCloseButton] = useState(false);
   const [wsData, setWsData] = useState<{ pending: ReactNode | false, items: ITimeLine[] }>();
+  const [buildPath, setBuildPath] = useState("");
 
   useEffect(()=>{
       setLoading(true);
@@ -75,7 +77,7 @@ export default function Home() {
                     const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
                         colorLogPrint("green","🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠")
-
+                        record.build_path = buildPath
                         ws.send( JSON.stringify(record))
                         setIsModalOpen(true)
                         setWsData({
@@ -170,6 +172,9 @@ export default function Home() {
 
               ></Timeline>
           </Modal>
+          <Input placeholder="build path" onBlur={(this)=>{
+              setBuildPath(this.value)
+          }} />
       </div>
   );
 }
