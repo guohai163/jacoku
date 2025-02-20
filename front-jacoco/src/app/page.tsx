@@ -3,7 +3,7 @@ import '@ant-design/v5-patch-for-react-19';
 import {ReactNode, useEffect, useState} from "react";
 import { Table, Button, Switch, Alert, Modal, Timeline, Spin } from 'antd';
 import type { TableProps } from 'antd';
-import {LoadingOutlined} from "@ant-design/icons";
+import {CheckCircleTwoTone, LoadingOutlined, WarningTwoTone} from "@ant-design/icons";
 
 
 interface DataType {
@@ -132,14 +132,20 @@ export default function Home() {
                         colorLogPrint("cyan","🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄")
                         setWsData(prevData => {
                             const updatedItems = prevData?.items ? [...prevData.items] : [];
-
+                            let buildSuccess:boolean = true
                             updatedItems.forEach((item) => {
                                 delete item.dot;
+                                if(item.color=="red"){
+
+                                    buildSuccess = false;
+                                }
                             });
+
                             // 根据返回的数据，处理 timeline 的条目
                             updatedItems.push({
-                                children: `🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄`,
-                                color: 'cyan',
+                                color: "blue",
+                                children: buildSuccess?`🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄`:`🎄🌲🌳🌴请打开控制台查看详细错误🎄🌲🌳🌴`,
+                                dot: buildSuccess?<CheckCircleTwoTone twoToneColor="#52c41a"/>:<WarningTwoTone twoToneColor="#eb2f96" />
                             });
                             return {
                                 pending: false,
