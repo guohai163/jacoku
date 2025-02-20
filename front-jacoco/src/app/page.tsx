@@ -67,7 +67,7 @@ export default function Home() {
         { key: 'last_check_time', title: '最后检查时间', dataIndex: 'last_check_time' },
         { key: 'html_link', title: 'HTML报告', dataIndex: 'html_link', render: (text: string) => (
             <>
-                {text != null && text.length>0?<a href={text} target={'_blank'}>查看报告</a>:<></>}
+                {(text != null && text.length>0)?<a href={text} target={'_blank'}>查看报告</a>:<></>}
             </>
             )
         },
@@ -88,7 +88,7 @@ export default function Home() {
                     }
                     ws.onmessage = function (evt){
                         const wsMessage = JSON.parse(evt.data)
-                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.returnCode+"_"+wsMessage.message)
+                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.message)
 
                         // 更新 wsData 状态
                         setWsData(prevData => {
@@ -172,9 +172,7 @@ export default function Home() {
 
               ></Timeline>
           </Modal>
-          <Input placeholder="build path" onBlur={(this)=>{
-              setBuildPath(this.value)
-          }} />
+          <Input placeholder="build path" onChange={(e)=>setBuildPath( e.target.value)}  />
       </div>
   );
 }
