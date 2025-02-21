@@ -13,6 +13,7 @@ interface DataType {
     git_commit: string;
     git_url: string;
     src_path: string;
+    build_path_switch: boolean;
 }
 
 interface ITimeLine {
@@ -22,7 +23,7 @@ interface ITimeLine {
 }
 
 export default function Home() {
-  const [jacokuData, setJacokuData] = useState();
+  const [jacokuData, setJacokuData] = useState<DataType[]>([]);
   const [messageApi] = message.useMessage();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,7 +36,7 @@ export default function Home() {
 
   useEffect(()=>{
       setLoading(true);
-      fetch('/api/list')
+      fetch('//jacoku.cn/api/list')
         .then(response => response.json())
         .then(data => {
           setJacokuData(data);
@@ -102,16 +103,31 @@ export default function Home() {
                 <a href={record.git_url.replace(/.git$/g,"")+'/-/tree/'+record.git_commit} target={'_blank'}>{record.git_commit}</a>
             )},
         { key: 'last_check_time', title: '最后检查时间', dataIndex: 'last_check_time' },
-        { key: 'html_link', title: 'HTML报告', dataIndex: 'html_link', render: (text: string) => (
+      { key: 'html_link', title: 'HTML报告', dataIndex: 'html_link', render: (text: string) => (
             <>
                 {text != null && text.length>0?<a href={text} target={'_blank'}>查看报告</a>:<></>}
             </>
             )
-        },
+      },
+      { key: 'build_path_switch', title: '构建路径', dataIndex: 'build_path_switch', render: (val:boolean, record: DataType) => (
+          <>
+            <Switch onChange={(checked)=>{
+                let data: DataType[] = jacokuData
+                data.forEach((item) => {
+                    if (item.pod_name == record.pod_name){
+                        item.build_path_switch = checked
+                    }
+                })
+                setJacokuData(data)
+            }}></Switch>
+          </>
+          )
+
+      },
         { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
                 {record.enable?<Button type={"primary"} onClick={() => {
-                    const ws:WebSocket = new WebSocket("/api/ws")
+                    const ws:WebSocket = new WebSocket("//jacoku.cn/api/ws")
                     ws.onopen = function (){
                         colorLogPrint("green","🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠")
 
