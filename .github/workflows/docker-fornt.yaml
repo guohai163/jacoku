@@ -1,8 +1,5 @@
-name: Docker
-on:
-  push:
-    tags:
-      - "v*.*.*"
+name: Docker-Front
+on: workflow_dispatch
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
