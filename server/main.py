@@ -77,7 +77,7 @@ def build_java_project(project_name, git_commit, src_path, build_path_switch):
         run_cwd = local_base_dir + '/' + project_name
     result = subprocess.run(
         'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-            .format(jdk_path[11], maven_path), shell=True, cwd=run_cwd,
+        .format(jdk_path[11], maven_path), shell=True, cwd=run_cwd,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     LOG.info('build_path:{}'.format(run_cwd))
     # 如果pom_path 没传，认为构建了整个项目。下次同commit可以不进行二次构建
@@ -233,7 +233,8 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
                                                             utils.CodeProcess.OVER))
         return '生成成功'
     else:
-        req_web and ws_obj.write_message(utils.gen_response(1, '项目{}路径配置错误'.format(pod_name), utils.CodeProcess.ERROR))
+        req_web and ws_obj.write_message(
+            utils.gen_response(1, '项目{}路径配置错误'.format(pod_name), utils.CodeProcess.ERROR))
         LOG.error('项目{}路径配置错误'.format(pod_name))
         return '项目{}路径配置错误'.format(pod_name)
 
@@ -263,12 +264,15 @@ def get_pod(is_jacoco_enable):
                 html_link = None
                 if not report_html_link.get(re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(i.metadata.name)[0]) is None:
                     html_link = report_html_link[re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(i.metadata.name)[0]]
+                build_path_switch = False
+                if 'jacoco/build-path-switch' in i.metadata.annotations:
+                    build_path_switch = i.metadata.annotations.get('jacoco/build-path-switch')
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, last_time,
                                    i.metadata.annotations.get('jacoco/enable').lower() == 'true',
                                    i.metadata.annotations.get('jacoco/git-url'),
                                    i.metadata.annotations.get('jacoco/git-commit'),
                                    i.metadata.annotations.get('jacoco/src-path'),
-                                   html_link)
+                                   html_link, build_path_switch)
                 pod_list.append(pod_item)
                 LOG.info('{}\t{}\t{}'.format(i.status.pod_ip, i.metadata.namespace, i.metadata.name))
             else:
@@ -309,7 +313,7 @@ if __name__ == '__main__':
     list_pod = get_pod(True)
     for pod in list_pod:
         generate_jacoco_report(pod.pod_name, pod.pod_ip, pod.git_url, pod.git_commit, pod.src_path, report_format,
-                               upload_mini_enable, False)
+                               upload_mini_enable, False, build_path_switch=pod.build_path_switch)
     # 多进程中共享文件使用
     with open(check_pickle_file, 'wb') as check_file:
         pickle.dump(pod_last_check, check_file)
