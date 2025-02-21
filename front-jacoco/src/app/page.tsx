@@ -32,7 +32,7 @@ export default function Home() {
 
   useEffect(()=>{
       setLoading(true);
-      fetch('//jacoku.cn/api/list')
+      fetch('/api/list')
         .then(response => response.json())
         .then(data => {
           setJacokuData(data);
@@ -90,7 +90,7 @@ export default function Home() {
         { key: 'action', title:'生成报告', render: (_, record: DataType)=>(
             <>
                 {record.enable?<Button type={"primary"} onClick={() => {
-                    const ws:WebSocket = new WebSocket("//jacoku.cn/api/ws")
+                    const ws:WebSocket = new WebSocket("/api/ws")
                     ws.onopen = function (){
                         colorLogPrint("green","🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠")
                         ws.send( JSON.stringify(record))
