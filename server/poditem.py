@@ -6,7 +6,7 @@ class PodItem:
     pod的实体类
     """
 
-    def __init__(self, pod_name, pod_ns, pod_ip, last_check_time, enable, git_url, git_commit, src_path):
+    def __init__(self, pod_name, pod_ns, pod_ip, last_check_time, enable, git_url, git_commit, src_path, html_link):
         self.pod_name = pod_name
         self.pod_ns = pod_ns
         self.pod_ip = pod_ip
@@ -15,6 +15,7 @@ class PodItem:
         self.git_url = git_url
         self.git_commit = git_commit
         self.src_path = src_path
+        self.html_link = html_link
 
     def __str__(self):
         return 'pod_name: {}, pod_ip: {}, git_commit: {}, git_url: {}\n'.format(self.pod_name, self.pod_ip,
@@ -31,4 +32,5 @@ class PodItem:
                 "enable": self.enable,
                 "git_url": self.git_url,
                 "git_commit": self.git_commit,
-                "src_path": self.src_path}
+                "src_path": self.src_path,
+                "html_link": self.html_link}

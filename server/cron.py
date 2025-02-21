@@ -2,13 +2,15 @@ import getopt
 import json
 import sys
 import os
-import time
+
 import log4p
 from crontab import CronTab
 import asyncio
-import tornado
+import tornado.web
+import tornado.websocket
 
-from main import get_pod
+import utils
+from main import get_pod, generate_jacoco_report
 
 LOG = log4p.GetLogger('__main__').logger
 
@@ -54,14 +56,42 @@ class ListOfListsEncoder(json.JSONEncoder):
         return obj.toJSON()
 
 
+class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
+    waiters = set()
+
+    def check_origin(self, origin):
+        return True
+
+    def open(self):
+        LOG.info('WS opened')
+        AnalysisWebSocket.waiters.add(self)
+
+    def on_message(self, message):
+        args = json.loads(message)
+        self.write_message(utils.gen_response(0, '接收到请求{},开始分析！！'.format(args['pod_name'])))
+        self.write_message(utils.gen_response(0, '', ""))
+        build_path_switch = False
+        if not args['build_path_switch'] is None:
+            build_path_switch = args['build_path_switch']
+        generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
+                               args['src_path'], 'html', False, True, self, build_path_switch)
+        self.close()
+
+    def on_close(self):
+        LOG.info('ws closed')
+        AnalysisWebSocket.waiters.remove(self)
+
+
+# pylint: disable=W0223
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(json.dumps(get_pod(False), cls=ListOfListsEncoder))
 
 
+# pylint: disable=W0223
 class ReportBrowser(tornado.web.RequestHandler):
     """
-    遍历本地目录
+    返回报告的静态文件
     """
 
     def get(self, path):
@@ -88,8 +118,9 @@ class ReportBrowser(tornado.web.RequestHandler):
 
 async def server_start():
     app = tornado.web.Application([
+        (r"/api/ws", AnalysisWebSocket),
         (r"/api/list", MainHandler),
-        (r"/report/(.*)", ReportBrowser)
+        (r"/report/(.*)", ReportBrowser),
     ])
     app.listen(1219)
     await asyncio.Event().wait()
