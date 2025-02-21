@@ -70,16 +70,20 @@ def clone_project_local(git_url, project_name, git_commit):
         return result
 
 
-def build_java_project(project_name, git_commit, pom_path=""):
+def build_java_project(project_name, git_commit, src_path, build_path_switch):
+    if build_path_switch:
+        run_cwd = local_base_dir + '/' + project_name + '/' + src_path
+    else:
+        run_cwd = local_base_dir + '/' + project_name
     result = subprocess.run(
         'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
-        .format(jdk_path[11], maven_path), shell=True, cwd=local_base_dir + '/' + project_name + '/' + pom_path,
+            .format(jdk_path[11], maven_path), shell=True, cwd=run_cwd,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    LOG.info('build_path:{}'.format(run_cwd))
     # 如果pom_path 没传，认为构建了整个项目。下次同commit可以不进行二次构建
-    if pom_path == "":
+    if not build_path_switch:
         git_commit_dic[project_name] = git_commit
     return result
-
 
 
 def upload_local_directory_to_minio(local_path, minio_path, minio_client):
@@ -173,7 +177,7 @@ def dump_jacoco_data(pod_ip, exec_file):
 
 
 def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format='xml', upload_enable=False,
-                           req_web=False, ws_obj=None):
+                           req_web=False, ws_obj=None, build_path_switch=False):
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
@@ -202,7 +206,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # build项目
     req_web and ws_obj.write_message(utils.gen_response(0, '准备构建项目{}'.format(project_name),
                                                         utils.CodeProcess.BUILD_CODE))
-    result = build_java_project(project_name, git_commit)
+    result = build_java_project(project_name, git_commit, src_path, build_path_switch)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result is None or result.returncode > 0:
         LOG.error('project build {} fail commit {}'.format(project_name, git_commit))

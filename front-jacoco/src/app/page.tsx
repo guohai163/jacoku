@@ -1,9 +1,9 @@
 'use client';
 import '@ant-design/v5-patch-for-react-19';
 import {ReactNode, useEffect, useState} from "react";
-import { Table, Button, Switch, Alert, message, Modal, Timeline, Spin } from 'antd';
+import { Table, Button, Switch, Alert, Modal, Timeline, Spin } from 'antd';
 import type { TableProps } from 'antd';
-import {LoadingOutlined} from "@ant-design/icons";
+import {CheckCircleTwoTone, LoadingOutlined, WarningTwoTone} from "@ant-design/icons";
 
 
 interface DataType {
@@ -24,14 +24,10 @@ interface ITimeLine {
 
 export default function Home() {
   const [jacokuData, setJacokuData] = useState<DataType[]>([]);
-  const [messageApi] = message.useMessage();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // 关闭按钮是否显示
   const [modalCloseButton, setModalCloseButton] = useState(false);
-  const [processTime, setProcessTime] = useState<ITimeLine[]>([]);
-  const [pendingTime,setPendingTime] = useState<ReactNode>();
-  const [lastData, setLastData] = useState<ITimeLine>();
   const [wsData, setWsData] = useState<{ pending: ReactNode | false, items: ITimeLine[] }>();
 
   useEffect(()=>{
@@ -45,41 +41,6 @@ export default function Home() {
         .catch(error => console.error(error))
   },[]);
 
-  const handleWsData = (message: string, icon: string) => {
-
-      if(icon=="green"){
-          // 正常开始
-          setLastData({children: message, color: icon})
-          setPendingTime(message)
-          return {children: message, color: icon};
-      }
-      if(icon=="red" ){
-          // 上一步出错
-          const pro = processTime;
-          pro.push( {children: (lastData as ITimeLine).children, color: "red"})
-          setProcessTime(pro)
-          setPendingTime(false)
-          return {children: message, color: icon};
-      }
-      if(icon=="cyan"){
-          // 结束了
-          const pro = processTime;
-          pro.push(lastData as ITimeLine)
-          pro.push( {children: message, color: icon})
-          setProcessTime(pro)
-          setPendingTime(false)
-          return;
-      }
-      // 正常过程中
-
-      const pro = processTime;
-      pro.push(lastData as ITimeLine)
-      setProcessTime(pro)
-      setLastData({children: message, color: icon})
-      setPendingTime(message);
-
-
-  }
 
   const colorLogPrint = (color: string, message: string) =>{
       const cssMap = new Map();
@@ -105,14 +66,14 @@ export default function Home() {
         { key: 'last_check_time', title: '最后检查时间', dataIndex: 'last_check_time' },
       { key: 'html_link', title: 'HTML报告', dataIndex: 'html_link', render: (text: string) => (
             <>
-                {text != null && text.length>0?<a href={text} target={'_blank'}>查看报告</a>:<></>}
+                {(text != null && text.length>0)?<a href={text} target={'_blank'}>查看报告</a>:<></>}
             </>
             )
       },
       { key: 'build_path_switch', title: '构建路径', dataIndex: 'build_path_switch', render: (val:boolean, record: DataType) => (
           <>
             <Switch onChange={(checked)=>{
-                let data: DataType[] = jacokuData
+                const data: DataType[] = jacokuData
                 data.forEach((item) => {
                     if (item.pod_name == record.pod_name){
                         item.build_path_switch = checked
@@ -130,7 +91,6 @@ export default function Home() {
                     const ws:WebSocket = new WebSocket("//jacoku.cn/api/ws")
                     ws.onopen = function (){
                         colorLogPrint("green","🐠🐟🦞🐡准备开始分析代码🐡🦞🐟🐠")
-
                         ws.send( JSON.stringify(record))
                         setIsModalOpen(true)
                         setWsData({
@@ -141,7 +101,7 @@ export default function Home() {
                     }
                     ws.onmessage = function (evt){
                         const wsMessage = JSON.parse(evt.data)
-                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.returnCode+"_"+wsMessage.message)
+                        colorLogPrint(wsMessage.returnCode==0?"white":"orange",wsMessage.message)
 
                         // 更新 wsData 状态
                         setWsData(prevData => {
@@ -187,14 +147,20 @@ export default function Home() {
                         colorLogPrint("cyan","🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄")
                         setWsData(prevData => {
                             const updatedItems = prevData?.items ? [...prevData.items] : [];
-
+                            let buildSuccess:boolean = true
                             updatedItems.forEach((item) => {
                                 delete item.dot;
+                                if(item.color=="red"){
+
+                                    buildSuccess = false;
+                                }
                             });
+
                             // 根据返回的数据，处理 timeline 的条目
                             updatedItems.push({
-                                children: `🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄`,
-                                color: 'cyan',
+                                color: "blue",
+                                children: buildSuccess?`🎄🌲🌳🌴代码分析结束🌴🌳🌲🎄`:`🎄🌲🌳🌴请打开控制台查看详细错误🎄🌲🌳🌴`,
+                                dot: buildSuccess?<CheckCircleTwoTone twoToneColor="#52c41a"/>:<WarningTwoTone twoToneColor="#eb2f96" />
                             });
                             return {
                                 pending: false,

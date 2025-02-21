@@ -70,8 +70,11 @@ class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
         args = json.loads(message)
         self.write_message(utils.gen_response(0, '接收到请求{},开始分析！！'.format(args['pod_name'])))
         self.write_message(utils.gen_response(0, '', ""))
+        build_path_switch = False
+        if not args['build_path_switch'] is None:
+            build_path_switch = args['build_path_switch']
         generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
-                               args['src_path'], 'html', False, True, self)
+                               args['src_path'], 'html', False, True, self, build_path_switch)
         self.close()
 
     def on_close(self):
@@ -113,24 +116,10 @@ class ReportBrowser(tornado.web.RequestHandler):
             return
 
 
-class AnalysisPod(tornado.web.RequestHandler):
-    """
-    分析单个POD
-    """
-
-    def post(self):
-        args = json.loads(self.request.body)
-        result = generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
-                                        args['src_path'], 'html', False, True)
-
-        return
-
-
 async def server_start():
     app = tornado.web.Application([
         (r"/api/ws", AnalysisWebSocket),
         (r"/api/list", MainHandler),
-        (r"/api/analysis", AnalysisPod),
         (r"/report/(.*)", ReportBrowser),
     ])
     app.listen(1219)
