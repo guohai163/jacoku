@@ -277,7 +277,7 @@ def get_pod(is_jacoco_enable):
                 LOG.info('{}\t{}\t{}'.format(i.status.pod_ip, i.metadata.namespace, i.metadata.name))
             else:
                 pod_item = PodItem(i.metadata.name, i.metadata.namespace, i.status.pod_ip, None,
-                                   False, '', '', '', '')
+                                   False, '', '', '', '', False)
                 if not is_jacoco_enable:
                     pod_list.append(pod_item)
     return pod_list
