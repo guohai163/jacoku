@@ -73,13 +73,15 @@ export default function Home() {
       { key: 'build_path_switch', title: '构建路径', dataIndex: 'build_path_switch', render: (val:boolean, record: DataType) => (
           <>
             <Switch onChange={(checked)=>{
-                const data: DataType[] = jacokuData
-                data.forEach((item) => {
-                    if (item.pod_name == record.pod_name){
-                        item.build_path_switch = checked
-                    }
-                })
-                setJacokuData(data)
+                // const data: DataType[] = jacokuData
+                // data.forEach((item) => {
+                //     if (item.pod_name == record.pod_name){
+                //         item.build_path_switch = checked
+                //     }
+                // })
+                record.build_path_switch = checked
+                // setJacokuData(data)
+                console.log(record)
             }}></Switch>
           </>
           )
