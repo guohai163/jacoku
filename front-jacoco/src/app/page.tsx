@@ -1,5 +1,4 @@
 'use client';
-import '@ant-design/v5-patch-for-react-19';
 import {ReactNode, useEffect, useState} from "react";
 import { Table, Button, Switch, Alert, Modal, Timeline, Spin } from 'antd';
 import type { TableProps } from 'antd';

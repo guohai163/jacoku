@@ -71,7 +71,11 @@ class AnalysisWebSocket(tornado.websocket.WebSocketHandler):
         self.write_message(utils.gen_response(0, '接收到请求{},开始分析！！'.format(args['pod_name'])))
         self.write_message(utils.gen_response(0, '', ""))
         build_path_switch = False
+<<<<<<< HEAD
         if 'build_path_switch' in args:
+=======
+        if not args['build_path_switch'] is None:
+>>>>>>> origin/main
             build_path_switch = args['build_path_switch']
         generate_jacoco_report(args['pod_name'], args['pod_ip'], args['git_url'], args['git_commit'],
                                args['src_path'], 'html', False, True, self, build_path_switch)
