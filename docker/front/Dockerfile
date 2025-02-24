@@ -1,4 +1,4 @@
-FROM node:lts-bookworm AS base
+FROM node:22.13.1-bookworm AS base
 
 
 FROM base AS deps
