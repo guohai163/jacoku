@@ -52,6 +52,22 @@ entries:
     version: 0.1.0
   jacoku:
   - apiVersion: v2
+    appVersion: 0.2.5
+    created: "2025-02-24T06:07:03.022948143Z"
+    description: Java code Coverage within Kubernetes
+    digest: dc3e0c1c1b36b18ccffa11786fcd0d2b64340f39529420753f1cda5f62e8cd17
+    home: https://github.com/guohai163/jacoku
+    keywords:
+    - java
+    - jacoco
+    - sonar
+    kubeVersion: '>= 1.24.0-0'
+    name: jacoku
+    type: application
+    urls:
+    - https://github.com/guohai163/jacoku/releases/download/helm-chart-0.2.5/jacoku-0.2.5.tgz
+    version: 0.2.5
+  - apiVersion: v2
     appVersion: 0.2.0
     created: "2025-02-21T07:28:44.647661195Z"
     description: Java code Coverage within Kubernetes
@@ -67,4 +83,4 @@ entries:
     urls:
     - https://github.com/guohai163/jacoku/releases/download/helm-chart-0.2.0/jacoku-0.2.0.tgz
     version: 0.2.0
-generated: "2025-02-21T07:28:44.647671103Z"
+generated: "2025-02-24T06:07:03.022960616Z"
