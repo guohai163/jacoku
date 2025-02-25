@@ -386,6 +386,13 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
+    环境准备
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
     本项目部署方法
   </a>
   
@@ -578,6 +585,13 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
+    环境准备
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
     本项目部署方法
   </a>
   
@@ -603,17 +617,23 @@
 
   <h1>快速部署</h1>
 
-<h2 id="_1">本项目部署方法</h2>
-<p>推荐使用helm来启动本项目。需要准备好 minio的环境,新建一个名为jacoco-report的存储桶并生成好对应 的key。同时本项目会在K8s集群内创建一个服务账号用来请求集群内的注解权限。</p>
-<pre><code class="language-shell"> kubectl create ns jacoco-report
- helm repo add jacoco-report https://guohai163.github.io/jacoco-report 
- helm repo update
- helm upgrade --install jacoco-report jacoco-report/jacoco-report \
-     --set 'extraEnvs[0].name=MINIO_URL,extraEnvs[0].value=minio.xxx.x' \
-     --set 'extraEnvs[1].name=MINIO_ACCESS,extraEnvs[1].value=xxx' \
-     --set 'extraEnvs[2].name=MINIO_SECRET,extraEnvs[2].value=xxx'
+<h2 id="_1">环境准备</h2>
+<p>本程序需要运行在kubernetes 1.24以上版本，同时K8s内需要安装有ingress支持。同时为了快速部署需要安装helm支持。</p>
+<h2 id="_2">本项目部署方法</h2>
+<p>快速启动脚本，需要按你的实际环境修改 ingress域名和ingress驱动类。</p>
+<pre><code class="language-shell">kubectl create ns jacoku
+helm repo add jacoku https://guohai163.github.io/jacoku
+helm repo update
+helm upgrade --install jacoku-report -n jacoku jacoku/jacoku \
+    --set 'ingress.enabled=true' \
+    --set 'ingress.className=nginx' \
+    --set 'ingress.host=demo.jacoku.cn'
 </code></pre>
-<p>正常启动后，项目会在每日凌晨1点对k8s内项目进行扫描并生成结果到存储桶内。</p>
+<p>正常启动后，可以打开浏览器访问 http://demo.jacoku.cn 查看安装情况。正常情况下是没有能够支持覆盖率的POD容器的，我们来创建一个测试体</p>
+<pre><code class="language-shell">kubectl apply -f https://guohai163.github.io/jacoku-testee/k8s-pod.yaml
+</code></pre>
+<p>重新打开 jacoku容器监控页面，可以看来新建立的测试POD，点击 生成报告 会开始进行分析。</p>
+<p><img alt="jacoku分析" src="../images/jacoku-code.png" /></p>
 
 
 
