@@ -181,6 +181,8 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     """
     此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
     """
+    if src_path is None:
+        src_path = ''
     # dump出分析文件
     req_web and path_init()
     exec_file = '/tmp/report_dump/{}.exec'.format(pod_name)

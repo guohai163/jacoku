@@ -1,9 +1,10 @@
 'use client';
-import {ReactNode, useEffect, useState} from "react";
-import { Table, Button, Switch, Alert, Modal, Timeline, Spin } from 'antd';
-import type { TableProps } from 'antd';
-import {CheckCircleTwoTone, LoadingOutlined, WarningTwoTone} from "@ant-design/icons";
-
+import {ReactNode, useEffect, useState, useRef} from "react";
+import {Table, Button, Switch, Alert, Modal, Timeline, Spin, Input, Space} from 'antd';
+import type { TableProps, InputRef, TableColumnsType, TableColumnType } from 'antd';
+import {CheckCircleTwoTone, LoadingOutlined, WarningTwoTone, SearchOutlined} from "@ant-design/icons";
+import type { FilterDropdownProps } from 'antd/es/table/interface';
+import Highlighter from 'react-highlight-words';
 
 interface DataType {
     pod_ns: string;
@@ -21,6 +22,7 @@ interface ITimeLine {
     dot?: ReactNode;
 }
 
+type DataIndex = keyof DataType;
 export default function Home() {
   const [jacokuData, setJacokuData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,10 +30,14 @@ export default function Home() {
   // 关闭按钮是否显示
   const [modalCloseButton, setModalCloseButton] = useState(false);
   const [wsData, setWsData] = useState<{ pending: ReactNode | false, items: ITimeLine[] }>();
+  const searchInput = useRef<InputRef>(null);
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
+
 
   useEffect(()=>{
       setLoading(true);
-      fetch('/api/list')
+      fetch('//ja-cos.gydev.cn/api/list')
         .then(response => response.json())
         .then(data => {
           setJacokuData(data);
@@ -49,10 +55,103 @@ export default function Home() {
       cssMap.set('orange','color:#d64a2e;background-color:#1E1E1E;padding:3px;');
       console.log("%c%s",cssMap.get(color),message);
   }
+    const handleSearch = (
+        selectedKeys: string[],
+        confirm: FilterDropdownProps['confirm'],
+        dataIndex: DataIndex,
+    ) => {
+      console.log(selectedKeys)
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+    const handleReset = (clearFilters: () => void) => {
+        clearFilters();
+        setSearchText('');
+    };
+    const getColumnSearchProps = (dataIndex: DataIndex):TableColumnType<DataType> => ({
+        filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters, close}) => (
+            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+                    style={{ marginBottom: 8, display: 'block' }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() => clearFilters && handleReset(clearFilters)}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({ closeDropdown: false });
+                            setSearchText((selectedKeys as string[])[0]);
+                            setSearchedColumn(dataIndex);
+                        }}
+                    >
+                        Filter
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            close();
+                        }}
+                    >
+                        close
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered: boolean) => (
+            <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        ),
+        onFilter: (value, record) =>
+            record[dataIndex]
+                .toString()
+                .toLowerCase()
+                .includes((value as string).toLowerCase()),
+        filterDropdownProps: {
+            onOpenChange(open) {
+                if (open) {
+                    setTimeout(() => searchInput.current?.select(), 100);
+                }
+            },
+        },
+        render: (text) =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    })
 
-  const columns: TableProps<DataType>['columns'] = [
+    const columns: TableProps<DataType>['columns'] = [
         { key: 'pod_ns', title: 'pod namespace', dataIndex: 'pod_ns'},
-        { key: 'pod_name', title: 'pod name', dataIndex: 'pod_name' },
+        { key: 'pod_name', title: 'pod name', dataIndex: 'pod_name',
+            ...getColumnSearchProps('pod_name')},
         { key: 'enable', title: '是否开启jacoco注解', dataIndex: 'enable',
             filters:[{ text: 'True', value: true }, { text: 'False', value: false}],
             onFilter: (value, record) => record.enable === value,
@@ -71,7 +170,7 @@ export default function Home() {
       },
       { key: 'build_path_switch', title: '构建路径', dataIndex: 'build_path_switch', render: (val:boolean, record: DataType) => (
           <>
-            <Switch onChange={(checked)=>{
+            <Switch defaultValue={val} onChange={(checked)=>{
                 // const data: DataType[] = jacokuData
                 // data.forEach((item) => {
                 //     if (item.pod_name == record.pod_name){

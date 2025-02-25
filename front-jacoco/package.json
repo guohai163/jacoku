@@ -14,13 +14,15 @@
     "antd": "^5.24.1",
     "next": "15.1.6",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-highlight-words": "^0.21.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-highlight-words": "^0.20.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "postcss": "^8",
