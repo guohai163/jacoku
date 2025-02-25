@@ -37,7 +37,7 @@ export default function Home() {
 
   useEffect(()=>{
       setLoading(true);
-      fetch('//ja-cos.gydev.cn/api/list')
+      fetch('/api/list')
         .then(response => response.json())
         .then(data => {
           setJacokuData(data);
@@ -171,15 +171,9 @@ export default function Home() {
       { key: 'build_path_switch', title: '构建路径', dataIndex: 'build_path_switch', render: (val:boolean, record: DataType) => (
           <>
             <Switch defaultValue={val} onChange={(checked)=>{
-                // const data: DataType[] = jacokuData
-                // data.forEach((item) => {
-                //     if (item.pod_name == record.pod_name){
-                //         item.build_path_switch = checked
-                //     }
-                // })
+
                 record.build_path_switch = checked
-                // setJacokuData(data)
-                console.log(record)
+
             }}></Switch>
           </>
           )
