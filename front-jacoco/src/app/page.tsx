@@ -1,7 +1,7 @@
 'use client';
 import {ReactNode, useEffect, useState, useRef} from "react";
 import {Table, Button, Switch, Alert, Modal, Timeline, Spin, Input, Space} from 'antd';
-import type { TableProps, InputRef, TableColumnsType, TableColumnType } from 'antd';
+import type { TableProps, InputRef, TableColumnType } from 'antd';
 import {CheckCircleTwoTone, LoadingOutlined, WarningTwoTone, SearchOutlined} from "@ant-design/icons";
 import type { FilterDropdownProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
