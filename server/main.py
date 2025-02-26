@@ -82,11 +82,15 @@ def check_runtime(runtime=False):
         return None
 
 
-def build_java_project(project_name, git_commit, src_path, build_path_switch, runtimes=False):
+def build_java_project(project_name, git_commit, src_path, build_path_switch, runtime=False):
     """
     通过mvn构建生成
     Args:
         project_name (str): 项目名
+        git_commit (str): commit  值，用以区分下次进来是否需要build
+        src_path (str): mvn构建路径
+        build_path_switch (bool): 根据构建路径开关决定构建的基础目录
+        runtime (bool): 运行时状态，决定RUN操作时的返回位置
     """
     if build_path_switch:
         run_cwd = local_base_dir + '/' + project_name + '/' + src_path
@@ -96,7 +100,7 @@ def build_java_project(project_name, git_commit, src_path, build_path_switch, ru
     result = subprocess.run(
         'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
         .format(jdk_path[11], maven_path), shell=True, cwd=run_cwd,
-        stdout=check_runtime(runtimes), stderr=check_runtime(runtimes))
+        stdout=check_runtime(runtime), stderr=check_runtime(runtime))
     # 如果pom_path 没传，认为构建了整个项目。下次同commit可以不进行二次构建
     if not build_path_switch:
         git_commit_dic[project_name] = git_commit
@@ -125,7 +129,7 @@ def upload_local_directory_to_minio(local_path, minio_path, minio_client):
             minio_client.fput_object(os.getenv('MINIO_BUCKET'), remote_path, local_file)
 
 
-def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, service_name, re_format):
+def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, service_name, re_format, runtime=False):
     """
     按指定格式生成报告
     """
@@ -146,7 +150,7 @@ def generate_report(jacoco_exec, git_url, git_commit, src_path, project_name, se
         result_file = '{}{}/{}'.format(REPORT_PATH, project_name, service_name)
     LOG.debug(call_command)
     result = subprocess.run(call_command, shell=True, cwd=local_base_dir + '/' + project_name + '/' + src_path,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            stdout=check_runtime(runtime), stderr=check_runtime(runtime)
                             )
     return result
 
@@ -242,12 +246,12 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
         LOG.error('project build {} fail commit {}'.format(project_name, git_commit))
         return result
     # 生成 报告
-    service_name = re.compile(r'(.+)-[\d\w]+-[\d\w]+$').findall(pod_name)[0]
+    service_name = re.compile(r'(.+)-\w+-\w+$').findall(pod_name)[0]
     if os.path.exists(local_base_dir + '/' + project_name + '/' + src_path):
         req_web and ws_obj.write_message(utils.gen_response(0, '生成报告{}'.format(pod_name),
                                                             utils.CodeProcess.GENERATE_REPORT))
         generate_result = generate_report(exec_file, git_url, git_commit, src_path, project_name, service_name,
-                                          re_format)
+                                          re_format, req_web)
         req_web and ws_obj.write_message(utils.subprocess_result_2_response(generate_result))
         if upload_enable and generate_result.returncode <= 0:
             upload_report(project_group, project_name, service_name, re_format)
