@@ -69,7 +69,7 @@ def clone_project_local(git_url, project_name, git_commit, runtime=False):
 
     # 如果本次和上次commit值想同，不再重新生成字节码文件
     if git_commit_dic.get(project_name) != git_commit:
-        result = subprocess.run('git restore . && git pull && git checkout {}'.format(git_commit), shell=True,
+        result = subprocess.run('git restore . && git checkout {}'.format(git_commit), shell=True,
                                 cwd=local_base_dir + '/' + project_name,
                                 stdout=check_runtime(runtime), stderr=check_runtime(runtime))
         return result
