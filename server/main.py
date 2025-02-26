@@ -54,9 +54,14 @@ def path_init():
         os.makedirs(REPORT_PATH)
 
 
-def clone_project_local(git_url, project_name, git_commit):
+def clone_project_local(git_url, project_name, git_commit, runtime=False):
     """
-    克隆代码,并对项目进行编译。生成字节码
+    克隆代码
+    Args:
+        git_url (str): git地址
+        project_name (str): 用来检查项目目录 是否存在
+        git_commit (str): 获取指定commit的版本，以便获得字节码
+        runtime (bool): 根据运行状态，决定输出日志位置
     """
     if not os.path.exists('{}{}'.format(local_base_dir, project_name)):
         subprocess.call('git clone {}'.format(git_url), shell=True, cwd=local_base_dir)
@@ -64,9 +69,9 @@ def clone_project_local(git_url, project_name, git_commit):
 
     # 如果本次和上次commit值想同，不再重新生成字节码文件
     if git_commit_dic.get(project_name) != git_commit:
-        result = subprocess.run('git pull && git checkout {}'.format(git_commit), shell=True,
+        result = subprocess.run('git restore . && git pull && git checkout {}'.format(git_commit), shell=True,
                                 cwd=local_base_dir + '/' + project_name,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                stdout=check_runtime(runtime), stderr=check_runtime(runtime))
         return result
 
 
