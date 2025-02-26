@@ -70,16 +70,33 @@ def clone_project_local(git_url, project_name, git_commit):
         return result
 
 
-def build_java_project(project_name, git_commit, src_path, build_path_switch):
+def check_runtime(runtime=False):
+    """
+    检查运行环境返回结果，影响run输出日志位置
+    Args:
+        runtime (bool): 运行位置。True，web状态下运行。False 本地运行
+    """
+    if runtime:
+        return subprocess.PIPE
+    else:
+        return None
+
+
+def build_java_project(project_name, git_commit, src_path, build_path_switch, runtimes=False):
+    """
+    通过mvn构建生成
+    Args:
+        project_name (str): 项目名
+    """
     if build_path_switch:
         run_cwd = local_base_dir + '/' + project_name + '/' + src_path
     else:
         run_cwd = local_base_dir + '/' + project_name
+    LOG.info('build_path:{}'.format(run_cwd))
     result = subprocess.run(
         'export JAVA_HOME={} && export PATH=$PATH:{} && mvn clean package -Dmaven.test.skip=true'
         .format(jdk_path[11], maven_path), shell=True, cwd=run_cwd,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    LOG.info('build_path:{}'.format(run_cwd))
+        stdout=check_runtime(runtimes), stderr=check_runtime(runtimes))
     # 如果pom_path 没传，认为构建了整个项目。下次同commit可以不进行二次构建
     if not build_path_switch:
         git_commit_dic[project_name] = git_commit
@@ -179,7 +196,18 @@ def dump_jacoco_data(pod_ip, exec_file):
 def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_format='xml', upload_enable=False,
                            req_web=False, ws_obj=None, build_path_switch=False):
     """
-    此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告
+    此方法包括dump数据 ，下载源码产生字节码，生成覆盖率报告.
+    Args:
+        pod_name (str): pod名字，
+        pod_ip (str): pod的IP，jacoco请求时会使用
+        git_url (str): git的地址，用来克隆代码使用
+        git_commit (str): pod运行时对应的commit版本，用来按commit生成字节码
+        src_path (str): 获取字节码的文件的路径，也就是POD对应的目录
+        re_format (str): 报告格式，默认为xml。支持html/xml
+        upload_enable (bool): 报告是否需要上传报告 默认不需要
+        req_web (bool): 运行环境，Flase在本地运行，True WEB下运行。结果值需要返回
+        ws_obj (AnalysisWebSocket): web对象，当req_web为True时，需要此参数
+        build_path_switch (bool): 构建开关，当为Flase时，build根目录pom。当为True时构建 src_path目录POM
     """
     if src_path is None:
         src_path = ''
@@ -208,7 +236,7 @@ def generate_jacoco_report(pod_name, pod_ip, git_url, git_commit, src_path, re_f
     # build项目
     req_web and ws_obj.write_message(utils.gen_response(0, '准备构建项目{}'.format(project_name),
                                                         utils.CodeProcess.BUILD_CODE))
-    result = build_java_project(project_name, git_commit, src_path, build_path_switch)
+    result = build_java_project(project_name, git_commit, src_path, build_path_switch, req_web)
     req_web and ws_obj.write_message(utils.subprocess_result_2_response(result))
     if result is None or result.returncode > 0:
         LOG.error('project build {} fail commit {}'.format(project_name, git_commit))
