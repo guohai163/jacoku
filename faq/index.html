@@ -8,25 +8,25 @@
       
       
       
-        <link rel="canonical" href="https://guohai163.github.com/jacoku/full-depl/test-object/">
+        <link rel="canonical" href="https://guohai163.github.com/jacoku/faq/">
       
       
-        <link rel="prev" href="../flow-chart/">
+        <link rel="prev" href="../depl/">
       
       
-        <link rel="next" href="../testing/">
+        <link rel="next" href="../full-depl/flow-chart/">
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
     
     
       
-        <title>测试对象准备 - Java code Coverage within Kubernetes</title>
+        <title>常见问题 - Java code Coverage within Kubernetes</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.6a10b989.min.css">
       
       
 
@@ -45,7 +45,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -66,6 +66,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#mavensettingsxml" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -78,7 +83,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Java code Coverage within Kubernetes" class="md-header__button md-logo" aria-label="Java code Coverage within Kubernetes" data-md-component="logo">
+    <a href=".." title="Java code Coverage within Kubernetes" class="md-header__button md-logo" aria-label="Java code Coverage within Kubernetes" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -98,7 +103,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              测试对象准备
+              常见问题
             
           </span>
         </div>
@@ -168,11 +173,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../.." class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
           
   
   快速开始
@@ -186,13 +193,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../flow-chart/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../full-depl/flow-chart/" class="md-tabs__link">
           
   
   完整部署说明
@@ -208,7 +213,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../customization/" class="md-tabs__link">
+      <a href="../customization/" class="md-tabs__link">
         
   
     
@@ -248,7 +253,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Java code Coverage within Kubernetes" class="md-nav__button md-logo" aria-label="Java code Coverage within Kubernetes" data-md-component="logo">
+    <a href=".." title="Java code Coverage within Kubernetes" class="md-nav__button md-logo" aria-label="Java code Coverage within Kubernetes" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -275,6 +280,8 @@
       
   
   
+    
+  
   
     
     
@@ -284,12 +291,12 @@
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
           <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
@@ -303,7 +310,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             快速开始
@@ -316,7 +323,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -336,99 +343,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../../depl/" class="md-nav__link">
+      <a href="../depl/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     快速部署
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    常见问题
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-    
-    
-    
-    
-    
-      
-      
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
-            
-  
-  <span class="md-ellipsis">
-    完整部署说明
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            完整部署说明
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../flow-chart/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    流程介绍
   </span>
   
 
@@ -451,16 +370,131 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    常见问题
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    测试对象准备
+    常见问题
   </span>
   
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mavensettingsxml" class="md-nav__link">
+    如何自定义maven的settings.xml文件
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#killpodjacoco" class="md-nav__link">
+    每次kill掉POD后再次启动时jacoco检查会很慢
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ltsjdk" class="md-nav__link">
+    我的项目使用非LTS版本JDK怎么办
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    
+    
+      
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    完整部署说明
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            完整部署说明
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../full-depl/flow-chart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    流程介绍
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -472,7 +506,27 @@
   
   
     <li class="md-nav__item">
-      <a href="../testing/" class="md-nav__link">
+      <a href="../full-depl/test-object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    测试对象准备
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../full-depl/testing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -492,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../jacoku.md" class="md-nav__link">
+      <a href="../full-depl/jacoku.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -519,7 +573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../customization/" class="md-nav__link">
+      <a href="../customization/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -550,6 +604,35 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mavensettingsxml" class="md-nav__link">
+    如何自定义maven的settings.xml文件
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#killpodjacoco" class="md-nav__link">
+    每次kill掉POD后再次启动时jacoco检查会很慢
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ltsjdk" class="md-nav__link">
+    我的项目使用非LTS版本JDK怎么办
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -566,9 +649,11 @@
   
 
 
-  <h1>测试对象准备</h1>
+  <h1>常见问题</h1>
 
-
+<h3 id="mavensettingsxml">如何自定义maven的settings.xml文件</h3>
+<h3 id="killpodjacoco">每次kill掉POD后再次启动时jacoco检查会很慢</h3>
+<h3 id="ltsjdk">我的项目使用非LTS版本JDK怎么办</h3>
 
 
 
@@ -607,10 +692,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.instant", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.instant", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.aecac24b.min.js"></script>
+      <script src="../assets/javascripts/bundle.aecac24b.min.js"></script>
       
     
   </body>
