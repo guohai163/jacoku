@@ -16,6 +16,7 @@ nav:
   - 快速开始:
     - 项目介绍: "index.md"
     - 快速部署: "depl.md"
+    - 常见问题: "faq.md"
   - 完整部署说明:
     - 流程介绍: "full-depl/flow-chart.md"
     - 测试对象准备: "full-depl/test-object.md"
