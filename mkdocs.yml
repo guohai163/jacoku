@@ -23,3 +23,5 @@ nav:
     - 进行测试: "full-depl/testing.md"
     - 生成中间文件: "full-depl/jacoku.md"
   - 二次开发说明: "customization/index.md"
+plugins:
+    - mkdocs-video

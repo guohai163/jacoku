@@ -1,0 +1,6 @@
+ingress:
+  enabled: true
+  className: "nginx"
+  host: demo.jacoku.cn
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
