@@ -24,6 +24,5 @@ kubectl apply -f https://guohai163.github.io/jacoku-testee/k8s-pod.yaml
 
 重新打开 jacoku容器监控页面，可以看来新建立的测试POD，点击 生成报告 会开始进行分析。
 
-![jacoku分析](./images/jacoku-code.png)
 
 ![type:video](./videos/jacoku-guid-1.mp4)
